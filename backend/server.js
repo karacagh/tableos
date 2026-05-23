@@ -9,6 +9,8 @@ const server = http.createServer(app);
 
 const allowedOrigins = [
   process.env.CLIENT_URL,
+  'https://monetcafe.net',
+  'https://www.monetcafe.net',
   'https://monetcafe-khaki.vercel.app',
   'http://localhost:3000'
 ].filter(Boolean);
