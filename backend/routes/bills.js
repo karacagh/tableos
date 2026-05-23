@@ -51,4 +51,59 @@ router.patch('/:id/close', auth, roles('admin','manager','cashier'), async (req,
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// Hesap bölme
+router.post('/:id/split', auth, roles('admin','manager','cashier'), async (req, res) => {
+  try {
+    const { item_ids, payment_method } = req.body;
+    const bill = await pool.query('SELECT * FROM bills WHERE id=$1', [req.params.id]);
+    if (!bill.rows[0]) return res.status(404).json({ error: 'Adisyon bulunamadı' });
+
+    // Seçilen kalemleri ödenmiş işaretle
+    for (const item_id of item_ids) {
+      await pool.query(
+        'INSERT INTO bill_items (bill_id, order_item_id, is_paid, paid_at, payment_method) VALUES ($1,$2,true,NOW(),$3) ON CONFLICT DO NOTHING',
+        [req.params.id, item_id, payment_method]
+      );
+    }
+
+    // Tüm kalemler ödendi mi kontrol et
+    const unpaid = await pool.query(`
+      SELECT oi.id FROM order_items oi
+      JOIN bill_orders bo ON bo.order_id = oi.order_id
+      LEFT JOIN bill_items bi ON bi.order_item_id = oi.id AND bi.bill_id = $1
+      WHERE bo.bill_id = $1 AND (bi.is_paid IS NULL OR bi.is_paid = false)
+    `, [req.params.id]);
+
+    if (unpaid.rows.length === 0) {
+      await pool.query(
+        'UPDATE bills SET status=$1, payment_method=$2, closed_at=NOW() WHERE id=$3',
+        ['paid', payment_method, req.params.id]
+      );
+      req.io.emit('bill_closed', { bill_id: req.params.id });
+    }
+
+    res.json({ success: true, remaining_items: unpaid.rows.length });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Kalem iptal
+router.patch('/:id/cancel-item', auth, roles('admin','manager','cashier'), async (req, res) => {
+  try {
+    const { order_item_id } = req.body;
+    await pool.query('DELETE FROM order_items WHERE id=$1', [order_item_id]);
+
+    // Adisyon toplamını güncelle
+    const total = await pool.query(`
+      SELECT COALESCE(SUM(oi.quantity * oi.unit_price), 0) as total
+      FROM order_items oi
+      JOIN bill_orders bo ON bo.order_id = oi.order_id
+      WHERE bo.bill_id = $1
+    `, [req.params.id]);
+
+    await pool.query('UPDATE bills SET total=$1 WHERE id=$2', [total.rows[0].total, req.params.id]);
+    req.io.emit('bill_updated', { bill_id: req.params.id });
+    res.json({ success: true, new_total: total.rows[0].total });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;

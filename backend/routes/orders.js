@@ -5,8 +5,25 @@ const auth = require('../middleware/auth');
 // Aktif siparişler (garson + mutfak + kasiyer görür)
 router.get('/', auth, async (req, res) => {
   try {
+    const { date, status } = req.query;
+    let dateFilter = '';
+    let statusFilter = '';
+    const params = [];
+
+    if (date) {
+      params.push(date);
+      dateFilter = `AND DATE(o.created_at) = $${params.length}`;
+    }
+    if (status) {
+      params.push(status);
+      statusFilter = `AND o.status = $${params.length}`;
+    }
+
     const result = await pool.query(`
-      SELECT o.*, t.number as table_number, t.zone as table_zone,
+      SELECT o.*,
+        t.number as table_number, t.zone as table_zone,
+        w.name as waiter_name,
+        k.name as kitchen_name,
         json_agg(json_build_object(
           'id', oi.id,
           'product_id', oi.product_id,
@@ -17,12 +34,14 @@ router.get('/', auth, async (req, res) => {
         )) as items
       FROM orders o
       LEFT JOIN tables t ON o.table_id = t.id
+      LEFT JOIN users w ON o.waiter_id = w.id
+      LEFT JOIN users k ON o.kitchen_user_id = k.id
       LEFT JOIN order_items oi ON o.id = oi.order_id
       LEFT JOIN products p ON oi.product_id = p.id
-      WHERE o.status NOT IN ('delivered','cancelled')
-      GROUP BY o.id, t.number, t.zone
+      WHERE 1=1 ${dateFilter} ${statusFilter}
+      GROUP BY o.id, t.number, t.zone, w.name, k.name
       ORDER BY o.created_at DESC
-    `);
+    `, params);
     res.json(result.rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -31,12 +50,12 @@ router.get('/', auth, async (req, res) => {
 router.post('/', async (req, res) => {
   const client = await pool.connect();
   try {
-    const { table_id, items, note } = req.body;
+    const { table_id, items, note, waiter_id } = req.body;
     await client.query('BEGIN');
 
     const orderResult = await client.query(
-      'INSERT INTO orders (table_id, note) VALUES ($1,$2) RETURNING *',
-      [table_id, note]
+      'INSERT INTO orders (table_id, note, waiter_id) VALUES ($1,$2,$3) RETURNING *',
+      [table_id, note, waiter_id || null]
     );
     const order = orderResult.rows[0];
 
@@ -67,11 +86,29 @@ router.post('/', async (req, res) => {
 router.patch('/:id/status', auth, async (req, res) => {
   try {
     const { status } = req.body;
+    let extra = '';
+    let params = [status, req.params.id];
+
+    if (status === 'preparing') {
+      extra = ', kitchen_user_id=$3, kitchen_started_at=NOW()';
+      params = [status, req.params.id, req.user.id];
+    } else if (status === 'delivered') {
+      extra = ', delivered_at=NOW()';
+    }
+
     const result = await pool.query(
-      'UPDATE orders SET status=$1, updated_at=NOW() WHERE id=$2 RETURNING *',
-      [status, req.params.id]
+      `UPDATE orders SET status=$1, updated_at=NOW()${extra} WHERE id=$2 RETURNING *`,
+      params
     );
     req.io.emit('order_updated', result.rows[0]);
+
+    // Mutfak hazır deyince garsona bildir
+    if (status === 'ready') {
+      req.io.emit('order_ready', {
+        order_id: result.rows[0].id,
+        table_id: result.rows[0].table_id
+      });
+    }
     res.json(result.rows[0]);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
