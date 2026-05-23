@@ -26,7 +26,8 @@ export default function LoginPage() {
         cashier: '/cashier',
         kitchen: '/kitchen',
       };
-      router.replace(routes[user.role] || '/dashboard');
+      const targetRoute = routes[user.role] || '/dashboard';
+      window.location.href = targetRoute;
     } catch (err: any) {
       console.error('Login error:', err);
       console.error('Response:', err.response?.data);
