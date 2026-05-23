@@ -4,7 +4,7 @@ const auth = require('../middleware/auth');
 const roles = require('../middleware/roles');
 
 // Tüm masalar
-router.get('/', auth, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM tables WHERE is_active=true ORDER BY zone, number');
     res.json(result.rows);
