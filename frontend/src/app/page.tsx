@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 
-interface Settings { cafe_name: string; }
 interface Category { id: number; name: string; }
 interface Product {
   id: number; category_id: number; category_name: string;
@@ -15,16 +14,20 @@ export default function HomePage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
+  const [siteSettings, setSiteSettings] = useState<any>({});
 
   useEffect(() => {
     async function load() {
       try {
-        const [cats, prods] = await Promise.all([
+        const [cats, prods, settingsRes] = await Promise.all([
           api.get('/api/categories'),
           api.get('/api/products'),
+          api.get('/api/settings'),
         ]);
         setCategories(cats.data);
         setProducts(prods.data);
+        const s = settingsRes.data;
+        setSiteSettings(s);
         if (cats.data.length > 0) setActiveCategory(cats.data[0].id);
       } catch {}
       finally { setLoading(false); }
@@ -37,6 +40,7 @@ export default function HomePage() {
     : products.filter(p => p.category_id === activeCategory);
 
   const campaigns = products.filter(p => p.is_campaign);
+  const s = siteSettings;
 
   return (
     <div className="min-h-screen bg-stone-900 text-white">
@@ -46,9 +50,9 @@ export default function HomePage() {
           style={{backgroundImage: 'radial-gradient(circle at 50% 50%, #c8843a 0%, transparent 60%)'}} />
         <div className="relative z-10">
           <h1 className="text-5xl font-bold text-amber-500 mb-3" style={{fontFamily:'Georgia,serif'}}>
-            Monet Cafe
+            {s.cafe_name || 'Monet Cafe'}
           </h1>
-          <p className="text-stone-400 text-lg mb-8">Çikolata Daima İyi Bir Fikirdir.</p>
+          <p className="text-stone-400 text-lg mb-8">{s.cafe_slogan || ''}</p>
           <a href="#menu"
             className="inline-block bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold px-8 py-3 rounded-full transition text-lg">
             Menüyü Keşfet →
@@ -59,26 +63,26 @@ export default function HomePage() {
       {/* Sosyal Medya */}
       <div className="flex justify-center gap-6 py-6 border-b border-stone-800">
         {[
-          { label: 'Instagram', href: 'https://www.instagram.com/monetkayseri/', icon: (
+          { label: 'Instagram', href: s.cafe_instagram || '#', icon: (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
               <rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/>
               <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/>
             </svg>
           )},
-          { label: 'Facebook', href: '#', icon: (
+          { label: 'Facebook', href: s.cafe_facebook || '#', icon: (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
               <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
             </svg>
           )},
-          { label: 'WhatsApp', href: 'https://wa.me/905XXXXXXXXX', icon: (
+          { label: 'WhatsApp', href: s.cafe_whatsapp ? `https://wa.me/${s.cafe_whatsapp}` : '#', icon: (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
               <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
             </svg>
           )},
-        ].map(s => (
-          <a key={s.label} href={s.href}
+        ].map(item => (
+          <a key={item.label} href={item.href}
             className="flex items-center gap-2 text-stone-400 hover:text-amber-500 transition text-sm">
-            {s.icon}{s.label}
+            {item.icon}{item.label}
           </a>
         ))}
       </div>
@@ -147,30 +151,32 @@ export default function HomePage() {
           <div>
             <h3 className="text-amber-500 font-semibold mb-3">Hakkımızda</h3>
             <p className="text-stone-500 text-xs leading-relaxed">
-              Kayseri'nin kalbinde, çikolatanın büyülü dünyasını keşfedin. El yapımı çikolatalar, özel kahveler ve eşsiz tatlılarımızla unutulmaz anlar yaşatıyoruz.
+              {s.cafe_about || ''}
             </p>
           </div>
           <div>
             <h3 className="text-amber-500 font-semibold mb-3">İletişim</h3>
             <div className="text-stone-500 text-xs space-y-1">
-              <p>📍 Kayseri</p>
-              <p>📞 Bilgi için Instagram'dan ulaşın</p>
-              <p>✉️ info@monetcafe.net</p>
+              {s.cafe_address && <p>📍 {s.cafe_address}</p>}
+              <p>📞 {s.cafe_phone || 'Instagram üzerinden ulaşın'}</p>
+              {s.cafe_email && <p>✉️ {s.cafe_email}</p>}
             </div>
           </div>
           <div>
             <h3 className="text-amber-500 font-semibold mb-3">Kariyer</h3>
             <p className="text-stone-500 text-xs leading-relaxed">
-              Ekibimize katılmak ister misiniz? CV'nizi bize gönderin.
+              Ekibimize katılmak ister misiniz? CV&apos;nizi bize gönderin.
             </p>
-            <a href="mailto:kariyer@monetcafe.net"
-              className="text-amber-500 text-xs hover:text-amber-400 transition mt-2 inline-block">
-              Başvur →
-            </a>
+            {s.cafe_career_email && (
+              <a href={`mailto:${s.cafe_career_email}`}
+                className="text-amber-500 text-xs hover:text-amber-400 transition mt-2 inline-block">
+                Başvur →
+              </a>
+            )}
           </div>
         </div>
         <div className="text-center text-stone-600 text-xs border-t border-stone-800 pt-6">
-          © 2025 Monet Cafe Kayseri · Tüm hakları saklıdır
+          © 2025 {s.cafe_name || 'Monet Cafe'} · Tüm hakları saklıdır
           <span className="mx-2">·</span>
           <a href="/login" className="hover:text-stone-400 transition">Yönetim Paneli</a>
         </div>
