@@ -28,6 +28,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+app.use((req, res, next) => { req.io = io; next(); });
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
@@ -43,8 +44,6 @@ app.use('/api/notifications', require('./routes/notifications'));
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
-
-app.use((req, res, next) => { req.io = io; next(); });
 
 // Socket.io bağlantısı
 io.on('connection', (socket) => {
