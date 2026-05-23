@@ -48,7 +48,7 @@ export default function HomePage() {
           <h1 className="text-5xl font-bold text-amber-500 mb-3" style={{fontFamily:'Georgia,serif'}}>
             Monet Cafe
           </h1>
-          <p className="text-stone-400 text-lg mb-8">Lezzet ve sanatın buluştuğu yer</p>
+          <p className="text-stone-400 text-lg mb-8">Çikolata Daima İyi Bir Fikirdir.</p>
           <a href="#menu"
             className="inline-block bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold px-8 py-3 rounded-full transition text-lg">
             Menüyü Keşfet →
@@ -59,7 +59,7 @@ export default function HomePage() {
       {/* Sosyal Medya */}
       <div className="flex justify-center gap-6 py-6 border-b border-stone-800">
         {[
-          { label: 'Instagram', href: '#', icon: (
+          { label: 'Instagram', href: 'https://www.instagram.com/monetkayseri/', icon: (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
               <rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/>
               <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/>
@@ -70,7 +70,7 @@ export default function HomePage() {
               <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
             </svg>
           )},
-          { label: 'WhatsApp', href: '#', icon: (
+          { label: 'WhatsApp', href: 'https://wa.me/905XXXXXXXXX', icon: (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
               <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
             </svg>
@@ -147,14 +147,14 @@ export default function HomePage() {
           <div>
             <h3 className="text-amber-500 font-semibold mb-3">Hakkımızda</h3>
             <p className="text-stone-500 text-xs leading-relaxed">
-              Monet Cafe, lezzet ve sanatı bir arada sunan özel bir mekan. 2020'den beri misafirlerimize hizmet veriyoruz.
+              Kayseri'nin kalbinde, çikolatanın büyülü dünyasını keşfedin. El yapımı çikolatalar, özel kahveler ve eşsiz tatlılarımızla unutulmaz anlar yaşatıyoruz.
             </p>
           </div>
           <div>
             <h3 className="text-amber-500 font-semibold mb-3">İletişim</h3>
             <div className="text-stone-500 text-xs space-y-1">
-              <p>📍 Adres bilgisi</p>
-              <p>📞 Telefon bilgisi</p>
+              <p>📍 Kayseri</p>
+              <p>📞 Bilgi için Instagram'dan ulaşın</p>
               <p>✉️ info@monetcafe.net</p>
             </div>
           </div>
@@ -170,7 +170,7 @@ export default function HomePage() {
           </div>
         </div>
         <div className="text-center text-stone-600 text-xs border-t border-stone-800 pt-6">
-          © 2025 Monet Cafe · Tüm hakları saklıdır
+          © 2025 Monet Cafe Kayseri · Tüm hakları saklıdır
           <span className="mx-2">·</span>
           <a href="/login" className="hover:text-stone-400 transition">Yönetim Paneli</a>
         </div>
