@@ -6,7 +6,7 @@ const auth = require('../middleware/auth');
 router.get('/', auth, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT o.*, t.number as table_number,
+      SELECT o.*, t.number as table_number, t.zone as table_zone,
         json_agg(json_build_object(
           'id', oi.id,
           'product_id', oi.product_id,
@@ -20,7 +20,7 @@ router.get('/', auth, async (req, res) => {
       LEFT JOIN order_items oi ON o.id = oi.order_id
       LEFT JOIN products p ON oi.product_id = p.id
       WHERE o.status NOT IN ('delivered','cancelled')
-      GROUP BY o.id, t.number
+      GROUP BY o.id, t.number, t.zone
       ORDER BY o.created_at DESC
     `);
     res.json(result.rows);

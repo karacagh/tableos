@@ -12,6 +12,7 @@ interface Table {
   capacity: number;
   is_active: boolean;
   qr_code: string;
+  zone: string;
 }
 
 export default function TablesPage() {
@@ -19,7 +20,7 @@ export default function TablesPage() {
   const [tables, setTables] = useState<Table[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ number: '', name: '', capacity: '4' });
+  const [form, setForm] = useState({ number: '', name: '', capacity: '4', zone: 'İçeri' });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -44,9 +45,10 @@ export default function TablesPage() {
         number: parseInt(form.number),
         name: form.name || `Masa ${form.number}`,
         capacity: parseInt(form.capacity),
+        zone: form.zone,
       });
       toast.success('Masa eklendi');
-      setForm({ number: '', name: '', capacity: '4' });
+      setForm({ number: '', name: '', capacity: '4', zone: 'İçeri' });
       setShowForm(false);
       loadTables();
     } catch (err: any) {
@@ -69,6 +71,8 @@ export default function TablesPage() {
     </div>
   );
 
+  const zones = [...new Set(tables.map(t => t.zone))].sort();
+
   return (
     <div className="min-h-screen bg-stone-900 text-white">
       <header className="bg-stone-800 border-b border-stone-700 px-6 py-4 flex items-center justify-between">
@@ -84,7 +88,18 @@ export default function TablesPage() {
 
       <main className="p-6">
         {showForm && (
-          <form onSubmit={addTable} className="bg-stone-800 border border-stone-700 rounded-xl p-5 mb-6 grid grid-cols-3 gap-4">
+          <form onSubmit={addTable} className="bg-stone-800 border border-stone-700 rounded-xl p-5 mb-6 grid grid-cols-4 gap-4">
+            <div>
+              <label className="text-stone-400 text-xs mb-1 block">Bölge</label>
+              <select value={form.zone} onChange={e => setForm({...form, zone: e.target.value})}
+                className="w-full bg-stone-700 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-500">
+                <option>İçeri</option>
+                <option>Bahçe</option>
+                <option>Balkon</option>
+                <option>Teras</option>
+                <option>Bar</option>
+              </select>
+            </div>
             <div>
               <label className="text-stone-400 text-xs mb-1 block">Masa No *</label>
               <input type="number" required value={form.number}
@@ -104,7 +119,7 @@ export default function TablesPage() {
                 onChange={e => setForm({...form, capacity: e.target.value})}
                 className="w-full bg-stone-700 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-500" />
             </div>
-            <div className="col-span-3 flex gap-3">
+            <div className="col-span-4 flex gap-3">
               <button type="submit" disabled={saving}
                 className="bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-stone-900 font-semibold px-5 py-2 rounded-lg text-sm transition">
                 {saving ? 'Kaydediliyor...' : 'Kaydet'}
@@ -126,21 +141,27 @@ export default function TablesPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {tables.map(t => (
-              <div key={t.id} className="bg-stone-800 border border-stone-700 rounded-xl p-4 text-center hover:border-stone-500 transition">
-                <div className="text-2xl font-bold text-amber-400 mb-1">{t.number}</div>
-                <div className="text-stone-300 text-sm font-medium">{t.name}</div>
-                <div className="text-stone-500 text-xs mt-1">{t.capacity} kişilik</div>
-                <div className="mt-3 flex gap-2 justify-center">
-                  <a href={t.qr_code} target="_blank"
-                    className="text-xs text-blue-400 hover:text-blue-300 transition">QR</a>
-                  <button onClick={() => deleteTable(t.id)}
-                    className="text-xs text-rose-400 hover:text-rose-300 transition">Sil</button>
-                </div>
+          zones.map(zone => (
+            <div key={zone} className="mb-8">
+              <h2 className="text-stone-400 text-sm font-semibold uppercase tracking-wider mb-3 border-b border-stone-700 pb-2">{zone}</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {tables.filter(t => t.zone === zone).map(t => (
+                  <div key={t.id} className="bg-stone-800 border border-stone-700 rounded-xl p-4 text-center hover:border-stone-500 transition">
+                    <div className="text-stone-500 text-xs mb-1">{t.zone}</div>
+                    <div className="text-2xl font-bold text-amber-400 mb-1">{t.number}</div>
+                    <div className="text-stone-300 text-sm font-medium">{t.name}</div>
+                    <div className="text-stone-500 text-xs mt-1">{t.capacity} kişilik</div>
+                    <div className="mt-3 flex gap-2 justify-center">
+                      <a href={t.qr_code} target="_blank"
+                        className="text-xs text-blue-400 hover:text-blue-300 transition">QR</a>
+                      <button onClick={() => deleteTable(t.id)}
+                        className="text-xs text-rose-400 hover:text-rose-300 transition">Sil</button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))
         )}
       </main>
     </div>
