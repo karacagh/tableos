@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { getUser } from '@/lib/auth';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
+import QRCode from 'qrcode';
 
 interface Table {
   id: number;
@@ -63,6 +64,48 @@ export default function TablesPage() {
       toast.success('Masa silindi');
       loadTables();
     } catch { toast.error('Hata oluştu'); }
+  }
+
+  async function downloadQR(table: Table) {
+    try {
+      const url = await QRCode.toDataURL(table.qr_code, {
+        width: 512,
+        margin: 2,
+        color: { dark: '#1a0e08', light: '#faf6f0' }
+      });
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `QR_${table.zone}_Masa${table.number}.png`;
+      link.click();
+    } catch { toast.error('QR oluşturulamadı'); }
+  }
+
+  async function printQR(table: Table) {
+    try {
+      const url = await QRCode.toDataURL(table.qr_code, { width: 512, margin: 2 });
+      const win = window.open('', '_blank');
+      if (!win) return;
+      win.document.write(`
+        <html><head><title>QR - ${table.zone} Masa ${table.number}</title>
+        <style>
+          body { font-family: Arial, sans-serif; text-align: center; padding: 40px; background: #fff; }
+          img { width: 280px; height: 280px; display: block; margin: 0 auto 20px; }
+          h2 { font-size: 24px; margin: 0 0 8px; color: #1a0e08; }
+          p { font-size: 16px; color: #7a6a5a; margin: 0 0 6px; }
+          small { font-size: 11px; color: #aaa; }
+          @media print { button { display: none; } }
+        </style></head>
+        <body>
+          <img src="${url}" />
+          <h2>${table.zone} · Masa ${table.number}</h2>
+          <p>Sipariş vermek için QR kodu okutun</p>
+          <small>${table.qr_code}</small>
+          <br><br>
+          <button onclick="window.print()" style="padding:10px 24px;background:#1a0e08;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">Yazdır</button>
+        </body></html>
+      `);
+      win.document.close();
+    } catch { toast.error('QR yazdırılamadı'); }
   }
 
   if (loading) return (
@@ -151,9 +194,11 @@ export default function TablesPage() {
                     <div className="text-2xl font-bold text-amber-400 mb-1">{t.number}</div>
                     <div className="text-stone-300 text-sm font-medium">{t.name}</div>
                     <div className="text-stone-500 text-xs mt-1">{t.capacity} kişilik</div>
-                    <div className="mt-3 flex gap-2 justify-center">
-                      <a href={t.qr_code} target="_blank"
-                        className="text-xs text-blue-400 hover:text-blue-300 transition">QR</a>
+                    <div className="mt-3 flex gap-2 justify-center flex-wrap">
+                      <button onClick={() => printQR(t)}
+                        className="text-xs text-blue-400 hover:text-blue-300 transition">Yazdır</button>
+                      <button onClick={() => downloadQR(t)}
+                        className="text-xs text-green-400 hover:text-green-300 transition">İndir</button>
                       <button onClick={() => deleteTable(t.id)}
                         className="text-xs text-rose-400 hover:text-rose-300 transition">Sil</button>
                     </div>
