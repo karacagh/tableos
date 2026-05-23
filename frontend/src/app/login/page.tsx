@@ -28,6 +28,9 @@ export default function LoginPage() {
       };
       router.replace(routes[user.role] || '/dashboard');
     } catch (err: any) {
+      console.error('Login error:', err);
+      console.error('Response:', err.response?.data);
+      console.error('Status:', err.response?.status);
       toast.error(err.response?.data?.error || 'Giriş başarısız');
     } finally {
       setLoading(false);
