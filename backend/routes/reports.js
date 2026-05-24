@@ -99,4 +99,70 @@ router.get('/weekly', auth, roles('admin','manager'), async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// Tarih aralığı raporu
+router.get('/range', auth, roles('admin','manager'), async (req, res) => {
+  try {
+    const { start, end } = req.query;
+    if (!start || !end) return res.status(400).json({ error: 'start ve end gerekli' });
+
+    const [summary, topProducts, staffPerf, dailyBreakdown] = await Promise.all([
+      pool.query(`
+        SELECT
+          COUNT(DISTINCT o.id) as total_orders,
+          COUNT(DISTINCT CASE WHEN o.status = 'delivered' THEN o.id END) as delivered_orders,
+          COALESCE(SUM(CASE WHEN b.status = 'paid' THEN b.total END), 0) as total_revenue,
+          COALESCE(AVG(CASE WHEN b.status = 'paid' THEN b.total END), 0) as avg_bill,
+          COUNT(DISTINCT CASE WHEN b.status = 'paid' THEN b.id END) as paid_bills
+        FROM orders o
+        LEFT JOIN bill_orders bo ON bo.order_id = o.id
+        LEFT JOIN bills b ON b.id = bo.bill_id
+        WHERE DATE(o.created_at) BETWEEN $1 AND $2
+      `, [start, end]),
+
+      pool.query(`
+        SELECT p.name,
+          SUM(oi.quantity) as total_quantity,
+          SUM(oi.quantity * oi.unit_price) as total_revenue
+        FROM order_items oi
+        JOIN products p ON oi.product_id = p.id
+        JOIN orders o ON oi.order_id = o.id
+        WHERE DATE(o.created_at) BETWEEN $1 AND $2 AND o.status != 'cancelled'
+        GROUP BY p.id, p.name
+        ORDER BY total_quantity DESC LIMIT 10
+      `, [start, end]),
+
+      pool.query(`
+        SELECT u.name,
+          COUNT(o.id) as total_orders,
+          COALESCE(SUM(oi_totals.total), 0) as total_revenue,
+          AVG(EXTRACT(EPOCH FROM (o.delivered_at - o.created_at))/60)::numeric(10,1) as avg_delivery_mins
+        FROM users u
+        LEFT JOIN orders o ON o.waiter_id = u.id AND DATE(o.created_at) BETWEEN $1 AND $2
+        LEFT JOIN (SELECT order_id, SUM(quantity * unit_price) as total FROM order_items GROUP BY order_id) oi_totals ON oi_totals.order_id = o.id
+        WHERE u.role = 'waiter'
+        GROUP BY u.id, u.name ORDER BY total_orders DESC
+      `, [start, end]),
+
+      pool.query(`
+        SELECT DATE(b.opened_at) as date,
+          COALESCE(SUM(CASE WHEN b.status = 'paid' THEN b.total END), 0) as revenue,
+          COUNT(DISTINCT CASE WHEN b.status = 'paid' THEN b.id END) as bill_count
+        FROM bills b
+        WHERE DATE(b.opened_at) BETWEEN $1 AND $2
+        GROUP BY DATE(b.opened_at) ORDER BY date ASC
+      `, [start, end]),
+    ]);
+
+    const days = Math.max(1, Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / 86400000) + 1);
+
+    res.json({
+      ...summary.rows[0],
+      avg_daily_revenue: Number(summary.rows[0].total_revenue) / days,
+      top_products: topProducts.rows,
+      staff_performance: staffPerf.rows,
+      daily_breakdown: dailyBreakdown.rows,
+    });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;
