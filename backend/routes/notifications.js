@@ -8,9 +8,9 @@ router.get('/', auth, async (req, res) => {
     const { target_role } = req.query;
     let filter = '';
     const params = [];
-    if (target_role) {
+    if (target_role && target_role !== 'all') {
       params.push(target_role);
-      filter = `AND n.target_role = $${params.length}`;
+      filter = `AND (n.target_role = $${params.length} OR n.target_role = 'all')`;
     }
     const result = await pool.query(`
       SELECT n.*, u.name as sender_name, u.role as sender_role
