@@ -70,6 +70,24 @@ export default function CashierPage() {
     };
   }, [loadAll]);
 
+  useEffect(() => {
+    if (!selectedTable) {
+      socket.emit('customer_screen_hide');
+      return;
+    }
+    const items = getAllItems(selectedTable.id);
+    const total = getTableTotal(selectedTable.id);
+    if (items.length > 0) {
+      socket.emit('customer_screen_show', {
+        table_zone: selectedTable.zone,
+        table_number: selectedTable.number,
+        items,
+        total,
+        status: 'open',
+      });
+    }
+  }, [selectedTable, orders]);
+
   function getTableOrders(tableId: number) {
     return orders.filter(o => o.table_id === tableId && !['cancelled','delivered'].includes(o.status));
   }
@@ -110,6 +128,8 @@ export default function CashierPage() {
     try {
       await api.patch(`/api/bills/${billId}/close`, { payment_method: paymentMethod });
       toast.success('✅ Hesap kapatıldı, masa boşaltıldı');
+      socket.emit('customer_screen_paid');
+      setTimeout(() => socket.emit('customer_screen_hide'), 4000);
       setSelectedTable(null);
       setView('tables');
       setSelectedItems([]);
@@ -189,6 +209,13 @@ export default function CashierPage() {
         </div>
         <div className="flex items-center gap-3">
           <span className="text-amber-400 text-sm font-semibold">{openBillsCount} açık adisyon</span>
+
+          {/* Müşteri ekranı butonu */}
+          <a href="/cashier/customer" target="_blank"
+            className="bg-stone-700 hover:bg-stone-600 px-3 py-2 rounded-lg text-xs transition flex items-center gap-1">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            Müşteri Ekranı
+          </a>
 
           {/* Bildirim butonu */}
           <button onClick={() => setShowNotif(!showNotif)} className="relative text-stone-400 hover:text-white transition">

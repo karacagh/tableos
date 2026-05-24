@@ -52,6 +52,15 @@ app.get('/health', (req, res) => {
 // Socket.io bağlantısı
 io.on('connection', (socket) => {
   console.log('Bağlantı kuruldu:', socket.id);
+
+  // Müşteri ekranı sync
+  socket.on('customer_screen_show', (data) => {
+    io.emit('customer_screen_update', data);
+  });
+  socket.on('customer_screen_hide', () => {
+    io.emit('customer_screen_clear');
+  });
+
   socket.on('disconnect', () => {
     console.log('Bağlantı kesildi:', socket.id);
   });
