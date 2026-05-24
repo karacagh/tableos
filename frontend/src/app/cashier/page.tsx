@@ -89,7 +89,10 @@ export default function CashierPage() {
   }, [selectedTable, orders]);
 
   function getTableOrders(tableId: number) {
-    return orders.filter(o => o.table_id === tableId && !['cancelled','delivered'].includes(o.status));
+    return orders.filter(o =>
+      o.table_id === tableId &&
+      !['cancelled'].includes(o.status)
+    );
   }
 
   function getTableBill(tableId: number) {
@@ -273,7 +276,9 @@ export default function CashierPage() {
                       const tBill = getTableBill(t.id);
                       const tOrders = getTableOrders(t.id);
                       const hasOrders = tOrders.length > 0;
-                      const total = getTableTotal(t.id);
+                      const total = tOrders.reduce((s, o) =>
+                        s + (o.items?.reduce((ss, i) => ss + (i.quantity * i.unit_price), 0) || 0), 0
+                      );
                       const isSelected = selectedTable?.id === t.id;
                       return (
                         <button key={t.id} onClick={() => { setSelectedTable(t); setView('bill'); setSelectedItems([]); }}
