@@ -25,7 +25,7 @@ export default function CashierPage() {
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
   const [view, setView] = useState<CashierView>('tables');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [closing, setClosing] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
@@ -110,7 +110,16 @@ export default function CashierPage() {
 
   function getSelectedTotal(): number {
     const items = selectedTable ? getAllItems(selectedTable.id) : [];
-    return items.filter(i => selectedItems.includes(i.id)).reduce((s, i) => s + (i.quantity * i.unit_price), 0);
+    const expandedItems = items.flatMap(item =>
+      Array.from({ length: item.quantity }, (_, i) => ({
+        ...item,
+        _splitId: `${item.id}_${i}`,
+        quantity: 1,
+      }))
+    );
+    return expandedItems
+      .filter(i => selectedItems.includes(i._splitId))
+      .reduce((s, i) => s + i.unit_price, 0);
   }
 
   async function openBill(table: Table) {
@@ -145,7 +154,8 @@ export default function CashierPage() {
     if (selectedItems.length === 0) { toast.error('Kalem seçin'); return; }
     setClosing(true);
     try {
-      const res = await api.post(`/api/bills/${billId}/split`, { item_ids: selectedItems, payment_method: paymentMethod });
+      const itemIds = selectedItems.map(sid => parseInt(sid.split('_')[0]));
+      const res = await api.post(`/api/bills/${billId}/split`, { item_ids: itemIds, payment_method: paymentMethod });
       toast.success(`Ödeme alındı. Kalan: ${res.data.remaining_items} kalem`);
       if (res.data.remaining_items === 0) {
         setSelectedTable(null); setView('tables');
@@ -385,48 +395,60 @@ export default function CashierPage() {
                 <h2 className="text-lg font-bold text-blue-400 mb-1">Hesap Böl</h2>
                 <p className="text-stone-400 text-sm">Ödeyeceğiniz kalemleri seçin</p>
               </div>
-              <div className="space-y-2 mb-4">
-                {allItems.map(item => {
-                  const isSelected = selectedItems.includes(item.id);
-                  return (
-                    <button key={item.id} onClick={() => setSelectedItems(prev => isSelected ? prev.filter(id => id !== item.id) : [...prev, item.id])}
-                      className={`w-full bg-stone-800 border rounded-xl px-4 py-3 flex items-center gap-3 transition text-left ${isSelected ? 'border-amber-500 bg-amber-500/10' : 'border-stone-700 hover:border-stone-500'}`}>
-                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${isSelected ? 'border-amber-500 bg-amber-500' : 'border-stone-600'}`}>
-                        {isSelected && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+              {(() => {
+                const expandedItems = allItems.flatMap(item =>
+                  Array.from({ length: item.quantity }, (_, i) => ({
+                    ...item,
+                    _splitId: `${item.id}_${i}`,
+                    quantity: 1,
+                  }))
+                );
+                return (
+                  <>
+                    <div className="space-y-2 mb-4">
+                      {expandedItems.map(item => {
+                        const isSelected = selectedItems.includes(item._splitId);
+                        return (
+                          <button key={item._splitId} onClick={() => setSelectedItems(prev => isSelected ? prev.filter(id => id !== item._splitId) : [...prev, item._splitId])}
+                            className={`w-full bg-stone-800 border rounded-xl px-4 py-3 flex items-center gap-3 transition text-left ${isSelected ? 'border-amber-500 bg-amber-500/10' : 'border-stone-700 hover:border-stone-500'}`}>
+                            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${isSelected ? 'border-amber-500 bg-amber-500' : 'border-stone-600'}`}>
+                              {isSelected && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-medium text-white">{item.name}</div>
+                            </div>
+                            <div className="text-amber-400 font-semibold">₺{item.unit_price.toFixed(2)}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="bg-stone-800 border border-stone-700 rounded-xl p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <button onClick={() => setSelectedItems(expandedItems.map(i => i._splitId))}
+                          className="flex-1 py-2 bg-stone-700 hover:bg-stone-600 rounded-lg text-sm transition">Hepsini Seç</button>
+                        <button onClick={() => setSelectedItems([])}
+                          className="flex-1 py-2 bg-stone-700 hover:bg-stone-600 rounded-lg text-sm transition">Temizle</button>
                       </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-white">{item.name}</div>
+                      <div className="flex justify-between font-bold text-lg mb-4">
+                        <span>Seçilen Toplam</span>
+                        <span className="text-amber-400">₺{getSelectedTotal().toFixed(2)}</span>
                       </div>
-                      <div className="text-stone-400 text-sm">{item.quantity}x</div>
-                      <div className="text-amber-400 font-semibold">₺{(item.quantity * item.unit_price).toFixed(2)}</div>
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="bg-stone-800 border border-stone-700 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <button onClick={() => setSelectedItems(allItems.map(i => i.id))}
-                    className="flex-1 py-2 bg-stone-700 hover:bg-stone-600 rounded-lg text-sm transition">Hepsini Seç</button>
-                  <button onClick={() => setSelectedItems([])}
-                    className="flex-1 py-2 bg-stone-700 hover:bg-stone-600 rounded-lg text-sm transition">Temizle</button>
-                </div>
-                <div className="flex justify-between font-bold text-lg mb-4">
-                  <span>Seçilen Toplam</span>
-                  <span className="text-amber-400">₺{getSelectedTotal().toFixed(2)}</span>
-                </div>
-                <div className="grid grid-cols-3 gap-2 mb-4">
-                  {(['cash','card','meal_card'] as PaymentMethod[]).map(m => (
-                    <button key={m} onClick={() => setPaymentMethod(m)}
-                      className={`py-2 rounded-lg text-sm font-semibold transition border ${paymentMethod === m ? 'border-amber-500 bg-amber-500/20 text-amber-400' : 'border-stone-600 text-stone-400 hover:border-stone-500'}`}>
-                      {m === 'cash' ? '💵 Nakit' : m === 'card' ? '💳 Kart' : '🍽 Yemek'}
-                    </button>
-                  ))}
-                </div>
-                <button onClick={() => splitPayment(bill.id)} disabled={closing || selectedItems.length === 0}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-xl font-bold transition">
-                  {closing ? 'İşleniyor...' : `Seçilenleri Öde (₺${getSelectedTotal().toFixed(2)})`}
-                </button>
-              </div>
+                      <div className="grid grid-cols-3 gap-2 mb-4">
+                        {(['cash','card','meal_card'] as PaymentMethod[]).map(m => (
+                          <button key={m} onClick={() => setPaymentMethod(m)}
+                            className={`py-2 rounded-lg text-sm font-semibold transition border ${paymentMethod === m ? 'border-amber-500 bg-amber-500/20 text-amber-400' : 'border-stone-600 text-stone-400 hover:border-stone-500'}`}>
+                            {m === 'cash' ? '💵 Nakit' : m === 'card' ? '💳 Kart' : '🍽 Yemek'}
+                          </button>
+                        ))}
+                      </div>
+                      <button onClick={() => splitPayment(bill.id)} disabled={closing || selectedItems.length === 0}
+                        className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-xl font-bold transition">
+                        {closing ? 'İşleniyor...' : `Seçilenleri Öde (₺${getSelectedTotal().toFixed(2)})`}
+                      </button>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           )}
         </div>
