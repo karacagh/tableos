@@ -16,7 +16,7 @@ export default function MenuPage() {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [activeTab, setActiveTab] = useState<'products'|'categories'>('products');
+  const [activeTab, setActiveTab] = useState<'products'|'categories'|'campaigns'>('products');
   const [loading, setLoading] = useState(true);
   const [showProductForm, setShowProductForm] = useState(false);
   const [showCatForm, setShowCatForm] = useState(false);
@@ -229,6 +229,10 @@ export default function MenuPage() {
               {tab === 'products' ? `Ürünler (${products.length})` : `Kategoriler (${categories.length})`}
             </button>
           ))}
+          <button key="campaigns" onClick={() => setActiveTab('campaigns')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition ${activeTab === 'campaigns' ? 'bg-amber-500 text-stone-900' : 'text-stone-400 hover:text-white'}`}>
+            Kampanyalar
+          </button>
         </div>
 
         {/* Ürün Listesi */}

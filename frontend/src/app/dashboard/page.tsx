@@ -93,6 +93,7 @@ export default function Dashboard() {
             { label: 'Personel', desc: 'Kullanıcı ve rol yönetimi', href: '/dashboard/staff', color: 'bg-purple-500' },
             { label: 'Siparişler', desc: 'Aktif sipariş takibi', href: '/dashboard/orders', color: 'bg-green-500' },
             { label: 'Raporlar', desc: 'Satış ve adisyon raporları', href: '/dashboard/reports', color: 'bg-rose-500' },
+            { label: 'Kampanyalar', desc: 'Ürün kombine kampanyaları', href: '/dashboard/campaigns', color: 'bg-orange-500' },
             { label: 'Ayarlar', desc: 'Cafe ayarları', href: '/dashboard/settings', color: 'bg-stone-500' },
           ].map(card => (
             <a key={card.href} href={card.href}

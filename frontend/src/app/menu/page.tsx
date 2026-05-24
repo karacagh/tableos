@@ -34,6 +34,7 @@ function MenuContent() {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const [showCart, setShowCart] = useState(false);
@@ -48,13 +49,15 @@ function MenuContent() {
 
   const loadAll = useCallback(async () => {
     try {
-      const [cats, prods, tables] = await Promise.all([
+      const [cats, prods, tables, camps] = await Promise.all([
         api.get('/api/categories'),
         api.get('/api/products'),
         api.get('/api/tables'),
+        api.get('/api/campaigns'),
       ]);
       setCategories(cats.data);
       setProducts(prods.data);
+      setCampaigns(camps.data);
       if (tableNumber) {
         const t = tables.data.find((t: any) => t.number === parseInt(tableNumber));
         if (t) {
@@ -197,6 +200,12 @@ function MenuContent() {
         </div>
         {/* Kategori Tabs */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {campaigns.length > 0 && (
+            <button onClick={() => setActiveCategory(-2)}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition ${activeCategory === -2 ? 'bg-orange-500 text-white' : 'bg-stone-700 text-stone-300'}`}>
+              🎯 Kampanyalar
+            </button>
+          )}
           {campaignProducts.length > 0 && (
             <button onClick={() => setActiveCategory(-1)}
               className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition ${activeCategory === -1 ? 'bg-amber-500 text-stone-900' : 'bg-stone-700 text-stone-300'}`}>
@@ -259,8 +268,55 @@ function MenuContent() {
         </div>
       )}
 
+      {/* Kampanya Listesi */}
+      {activeCategory === -2 && (
+        <div className="p-4 space-y-3">
+          {campaigns.map(c => {
+            const originalTotal = c.products?.reduce((s: number, p: any) => s + Number(p.original_price), 0) || 0;
+            return (
+              <div key={c.id} className="bg-stone-800 border-2 border-amber-500/40 rounded-xl overflow-hidden">
+                {c.image_url && <img src={c.image_url} alt={c.name} className="w-full h-40 object-cover" />}
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex-1">
+                      <h3 className="font-bold text-white">{c.name}</h3>
+                      {c.description && <p className="text-stone-400 text-xs mt-1">{c.description}</p>}
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <div className="text-stone-500 text-xs line-through">₺{originalTotal.toFixed(2)}</div>
+                      <div className="text-amber-400 text-2xl font-bold">₺{Number(c.campaign_price).toFixed(2)}</div>
+                      {originalTotal > Number(c.campaign_price) && (
+                        <div className="text-green-400 text-xs">₺{(originalTotal - Number(c.campaign_price)).toFixed(2)} tasarruf!</div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {c.products?.map((p: any, i: number) => (
+                      <div key={i} className="flex items-center gap-2 bg-stone-700 rounded-lg px-2 py-1">
+                        {p.image_url && <img src={p.image_url} alt="" className="w-5 h-5 rounded object-cover" />}
+                        <span className="text-xs text-stone-300">{p.product_name}</span>
+                        <span className="text-stone-500 text-xs line-through">₺{Number(p.original_price).toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={() => {
+                    c.products?.forEach((p: any) => {
+                      const product = products.find(pr => pr.id === p.product_id);
+                      if (product) addToCart(product);
+                    });
+                    toast.success('Kampanya sepete eklendi!');
+                  }} className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold rounded-xl text-sm transition">
+                    Kampanyayı Sepete Ekle
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* Ürün Listesi */}
-      <div className="p-4 space-y-3">
+      {activeCategory !== -2 && (<div className="p-4 space-y-3">
         {filteredProducts.map(p => {
           const cartItem = cart.find(i => i.product.id === p.id);
           const displayPrice = p.is_campaign && p.campaign_price ? p.campaign_price : p.price;
@@ -303,7 +359,7 @@ function MenuContent() {
             </div>
           );
         })}
-      </div>
+      </div>)}
 
       {/* Sepet Butonu */}
       {cart.length > 0 && !showCart && (
