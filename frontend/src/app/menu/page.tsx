@@ -46,6 +46,10 @@ function MenuContent() {
   const [tableId, setTableId] = useState<number | null>(null);
   const [myOrders, setMyOrders] = useState<Order[]>([]);
   const [bill, setBill] = useState<Bill | null>(null);
+  const [showReview, setShowReview] = useState(false);
+  const [lastOrderId, setLastOrderId] = useState<number | null>(null);
+  const [review, setReview] = useState({ product: 0, ambiance: 0, service: 0, note: '' });
+  const [reviewSent, setReviewSent] = useState(false);
 
   const loadAll = useCallback(async () => {
     try {
@@ -124,7 +128,7 @@ function MenuContent() {
     if (cart.length === 0) { toast.error('Sepet boş'); return; }
     setOrdering(true);
     try {
-      await api.post('/api/orders', {
+      const orderData = await api.post('/api/orders', {
         table_id: tableId,
         note: orderNote,
         items: cart.map(i => ({
@@ -133,12 +137,31 @@ function MenuContent() {
           note: i.note,
         })),
       });
+      setLastOrderId(orderData.data.id);
       setOrdered(true);
       setCart([]);
       setShowCart(false);
       loadTableOrders(tableId);
     } catch { toast.error('Sipariş gönderilemedi, tekrar deneyin'); }
     finally { setOrdering(false); }
+  }
+
+  async function submitReview() {
+    if (!review.product || !review.ambiance || !review.service) {
+      toast.error('Tüm puanları verin'); return;
+    }
+    try {
+      await api.post('/api/reviews', {
+        table_id: tableId,
+        order_id: lastOrderId,
+        rating_product: review.product,
+        rating_ambiance: review.ambiance,
+        rating_service: review.service,
+        note: review.note || null,
+      });
+      setReviewSent(true);
+      toast.success('Değerlendirmeniz için teşekkürler!');
+    } catch { toast.error('Gönderim hatası'); }
   }
 
   const filteredProducts = activeCategory === -1
@@ -156,21 +179,86 @@ function MenuContent() {
 
   if (ordered && !showOrders) return (
     <div className="min-h-screen bg-stone-900 flex items-center justify-center p-6">
-      <div className="text-center max-w-sm">
-        <div className="text-6xl mb-4">✅</div>
-        <h2 className="text-2xl font-bold text-white mb-2">Siparişiniz Alındı!</h2>
-        <p className="text-stone-400 mb-1">{tableZone} · Masa {tableNumber}</p>
-        <p className="text-stone-500 text-sm mb-6">Siparişiniz hazırlanıyor, kısa sürede geliyor.</p>
-        <div className="flex flex-col gap-3">
-          <button onClick={() => { setOrdered(false); loadAll(); }}
-            className="bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold px-6 py-3 rounded-xl transition">
-            Yeni Sipariş Ver
-          </button>
-          <button onClick={() => { setShowOrders(true); setOrdered(false); }}
-            className="bg-stone-800 hover:bg-stone-700 text-white px-6 py-3 rounded-xl transition border border-stone-700">
-            Siparişlerimi Gör
-          </button>
-        </div>
+      <div className="text-center max-w-sm w-full">
+        {!showReview && !reviewSent && (
+          <>
+            <div className="text-6xl mb-4">✅</div>
+            <h2 className="text-2xl font-bold text-white mb-2">Siparişiniz Alındı!</h2>
+            <p className="text-stone-400 mb-1">{tableZone} · Masa {tableNumber}</p>
+            <p className="text-stone-500 text-sm mb-6">Siparişiniz hazırlanıyor, kısa sürede geliyor.</p>
+            <div className="flex flex-col gap-3">
+              <button onClick={() => setShowReview(true)}
+                className="bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold px-6 py-3 rounded-xl transition">
+                ⭐ Değerlendirme Yap
+              </button>
+              <button onClick={() => { setOrdered(false); loadAll(); }}
+                className="bg-stone-800 hover:bg-stone-700 text-white px-6 py-3 rounded-xl transition border border-stone-700">
+                Yeni Sipariş Ver
+              </button>
+              <button onClick={() => { setShowOrders(true); setOrdered(false); }}
+                className="text-stone-400 hover:text-white text-sm transition">
+                Siparişlerimi Gör
+              </button>
+            </div>
+          </>
+        )}
+
+        {showReview && !reviewSent && (
+          <div className="bg-stone-800 rounded-2xl p-6 text-left">
+            <h3 className="text-xl font-bold text-white text-center mb-6">Deneyiminizi Değerlendirin</h3>
+
+            {[
+              { key: 'product', label: 'Ürünler', emoji: '🍽️' },
+              { key: 'ambiance', label: 'Ortam', emoji: '✨' },
+              { key: 'service', label: 'Servis', emoji: '👋' },
+            ].map(({ key, label, emoji }) => (
+              <div key={key} className="mb-5">
+                <div className="text-stone-300 text-sm font-medium mb-2">{emoji} {label}</div>
+                <div className="flex gap-2">
+                  {[1,2,3,4,5].map(star => (
+                    <button key={star} type="button"
+                      onClick={() => setReview(prev => ({ ...prev, [key]: star }))}
+                      className={`text-3xl transition ${(review as any)[key] >= star ? 'opacity-100' : 'opacity-25'}`}>
+                      ⭐
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            <div className="mb-5">
+              <div className="text-stone-300 text-sm font-medium mb-2">💬 Notunuz (opsiyonel)</div>
+              <textarea value={review.note} onChange={e => setReview({...review, note: e.target.value})}
+                placeholder="Deneyiminizi anlatın..."
+                rows={3}
+                className="w-full bg-stone-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-500 resize-none" />
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={submitReview}
+                disabled={!review.product || !review.ambiance || !review.service}
+                className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-stone-900 font-bold rounded-xl transition">
+                Gönder
+              </button>
+              <button onClick={() => { setShowReview(false); setOrdered(false); loadAll(); }}
+                className="px-4 py-3 bg-stone-700 hover:bg-stone-600 rounded-xl text-sm transition">
+                Geç
+              </button>
+            </div>
+          </div>
+        )}
+
+        {reviewSent && (
+          <div>
+            <div className="text-6xl mb-4">🙏</div>
+            <h2 className="text-2xl font-bold text-white mb-2">Teşekkürler!</h2>
+            <p className="text-stone-400 mb-6">Değerlendirmeniz kaydedildi.</p>
+            <button onClick={() => { setOrdered(false); setReviewSent(false); setShowReview(false); loadAll(); }}
+              className="bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold px-6 py-3 rounded-xl transition">
+              Yeni Sipariş Ver
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
