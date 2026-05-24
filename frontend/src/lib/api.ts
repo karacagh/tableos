@@ -16,8 +16,13 @@ api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401 && typeof window !== 'undefined') {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      const path = window.location.pathname;
+      const publicPaths = ['/menu', '/'];
+      const isPublic = publicPaths.some(p => path.startsWith(p));
+      if (!isPublic) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(err);
   }
