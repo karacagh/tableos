@@ -183,11 +183,11 @@ export default function HomePage() {
                   const cat2 = categories[i + 1];
                   rows.push(
                     <div key={`row-${i}`} className="flex gap-3" style={{ height: '120px' }}>
-                      {[{ cat: cat1, flex: r1 }, { cat: cat2, flex: r2 }].map(({ cat, flex }) => (
+                      {[{ cat: cat1, pct: r1 }, { cat: cat2, pct: r2 }].map(({ cat, pct }) => (
                         <button key={cat.id}
                           onClick={() => { setActiveCategory(cat.id); setShowMenu(true); }}
                           className="relative overflow-hidden rounded-2xl group"
-                          style={{ flex }}>
+                          style={{ width: `${pct}%`, flexShrink: 0 }}>
                           {cat.image_url ? (
                             <img src={cat.image_url} alt={cat.name}
                               className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
