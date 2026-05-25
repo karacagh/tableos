@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import api from '@/lib/api';
 
 interface Category { id: number; name: string; sort_order: number; image_url?: string; }
@@ -139,7 +139,7 @@ export default function HomePage() {
           </h2>
           <div className="flex flex-col gap-3">
             {(() => {
-              const rows: JSX.Element[] = [];
+              const rows: React.ReactElement[] = [];
               let i = 0;
               const ratios = [
                 [60, 40],
