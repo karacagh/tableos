@@ -45,6 +45,7 @@ export default function HomePage() {
   const cafeEmail = settings.cafe_email || '';
   const cafeCareerEmail = settings.cafe_career_email || '';
   const heroImage = settings.cafe_hero_image || '';
+  const heroImageMobile = settings.cafe_hero_image_mobile || '';
 
   const filteredProducts = activeCategory ? products.filter(p => p.category_id === activeCategory) : [];
 
@@ -61,12 +62,20 @@ export default function HomePage() {
       <div className="relative w-full flex flex-col justify-end overflow-hidden" style={{minHeight: '100svh'}}>
         {/* Arka plan görseli */}
         {heroImage ? (
-          <img
-            src={heroImage}
-            alt={cafeName}
-            className="absolute inset-0 w-full h-full object-cover object-center"
-            style={{objectPosition: 'center center'}}
-          />
+          <>
+            {/* Masaüstü görseli */}
+            <img
+              src={heroImage}
+              alt={cafeName}
+              className="absolute inset-0 w-full h-full object-cover object-center hidden md:block"
+            />
+            {/* Mobil görseli */}
+            <img
+              src={heroImageMobile || heroImage}
+              alt={cafeName}
+              className="absolute inset-0 w-full h-full object-cover object-center block md:hidden"
+            />
+          </>
         ) : (
           <div className="absolute inset-0 bg-gradient-to-b from-stone-800 via-stone-900 to-stone-950" />
         )}
