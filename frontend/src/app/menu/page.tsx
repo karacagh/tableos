@@ -269,9 +269,9 @@ function MenuContent() {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             {!showCategoryGrid && (
-              <button onClick={() => setShowCategoryGrid(true)}
-                className="text-stone-400 hover:text-white transition text-sm">
-                ← Kategoriler
+              <button onClick={() => { setShowCategoryGrid(true); setActiveCategory(null); }}
+                className="text-stone-400 hover:text-white transition">
+                ←
               </button>
             )}
             <h1 className="text-lg font-bold text-amber-500">Monet Cafe</h1>
@@ -364,7 +364,7 @@ function MenuContent() {
       )}
 
       {/* Kategori Grid */}
-      {showCategoryGrid && (
+      {showCategoryGrid && !showCart && !showOrders && (
         <div className="p-4">
           <div className="flex flex-col gap-3">
             {(() => {
@@ -449,7 +449,7 @@ function MenuContent() {
       )}
 
       {/* Kampanya Listesi */}
-      {!showCategoryGrid && activeCategory === -2 && (
+      {!showCategoryGrid && !showCart && !showOrders && activeCategory === -2 && (
         <div className="p-4 space-y-3">
           {campaigns.map(c => {
             const originalTotal = c.products?.reduce((s: number, p: any) => s + Number(p.original_price), 0) || 0;
@@ -496,7 +496,7 @@ function MenuContent() {
       )}
 
       {/* Ürün Listesi */}
-      {!showCategoryGrid && activeCategory !== -2 && (<div className="p-4 space-y-3">
+      {!showCategoryGrid && !showCart && !showOrders && activeCategory !== -2 && (<div className="p-4 space-y-3">
         {filteredProducts.map(p => {
           const cartItem = cart.find(i => i.product.id === p.id);
           const displayPrice = p.is_campaign && p.campaign_price ? p.campaign_price : p.price;
