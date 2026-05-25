@@ -264,39 +264,40 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Ürünler — A konsepti: büyük görsel üstte */}
-          <div className="p-4 grid grid-cols-2 gap-3">
+          {/* Ürünler — tek kolon, yatay kart */}
+          <div className="p-4 flex flex-col gap-3">
             {filteredProducts.map(p => {
               const price = p.is_campaign && p.campaign_price ? p.campaign_price : p.price;
               return (
-                <div key={p.id} className="bg-stone-800 rounded-2xl overflow-hidden border border-stone-700">
-                  {/* Görsel */}
-                  <div className="relative h-36">
+                <div key={p.id} className="bg-stone-800 rounded-2xl overflow-hidden border border-stone-700 flex gap-3 p-3">
+                  {/* Sol: Görsel */}
+                  <div className="relative w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden">
                     {p.image_url ? (
                       <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-stone-700 to-stone-800 flex items-center justify-center">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(200,132,58,0.3)" strokeWidth="1.5" strokeLinecap="round">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(200,132,58,0.3)" strokeWidth="1.5" strokeLinecap="round">
                           <path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
-                          <line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
                         </svg>
                       </div>
                     )}
                     {p.is_campaign && (
-                      <div className="absolute top-2 left-2 bg-amber-500 text-stone-900 text-xs font-bold px-2 py-0.5 rounded-full">
+                      <div className="absolute top-1 left-1 bg-amber-500 text-stone-900 font-bold px-1.5 py-0.5 rounded-full" style={{fontSize:'9px'}}>
                         KAMPANYA
                       </div>
                     )}
                   </div>
-                  {/* Bilgi */}
-                  <div className="p-3">
-                    <div className="font-semibold text-white text-sm mb-0.5 line-clamp-1">{p.name}</div>
-                    {p.description && (
-                      <div className="text-stone-500 text-xs line-clamp-1 mb-2">{p.description}</div>
-                    )}
-                    <div className="flex items-center justify-between">
+                  {/* Sağ: Bilgi */}
+                  <div className="flex-1 min-w-0 flex flex-col justify-between">
+                    <div>
+                      <div className="font-semibold text-white text-sm">{p.name}</div>
+                      {p.description && (
+                        <div className="text-stone-500 text-xs mt-0.5 line-clamp-2">{p.description}</div>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
                       <div>
-                        <span className="text-amber-400 font-bold">₺{price}</span>
+                        <span className="text-amber-400 font-bold text-sm">₺{price}</span>
                         {p.is_campaign && p.campaign_price && (
                           <span className="text-stone-500 text-xs line-through ml-1">₺{p.price}</span>
                         )}

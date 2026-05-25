@@ -1,10 +1,10 @@
 'use client';
-import { useEffect, useState, useCallback, Suspense } from 'react';
+import React, { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
-interface Category { id: number; name: string; sort_order: number; }
+interface Category { id: number; name: string; sort_order: number; image_url?: string; }
 interface Product {
   id: number; category_id: number; name: string; description: string;
   price: number; image_url: string; is_campaign: boolean; campaign_price: number;
@@ -50,6 +50,7 @@ function MenuContent() {
   const [lastOrderId, setLastOrderId] = useState<number | null>(null);
   const [review, setReview] = useState({ product: 0, ambiance: 0, service: 0, note: '' });
   const [reviewSent, setReviewSent] = useState(false);
+  const [showCategoryGrid, setShowCategoryGrid] = useState(true);
 
   const loadAll = useCallback(async () => {
     try {
@@ -87,9 +88,7 @@ function MenuContent() {
   }
 
   useEffect(() => { loadAll(); }, [loadAll]);
-  useEffect(() => {
-    if (categories.length > 0 && activeCategory === null) setActiveCategory(categories[0].id);
-  }, [categories, activeCategory]);
+  // Otomatik kategori seçimi kaldırıldı — grid üzerinden seçim yapılıyor
 
   // Siparişleri periyodik güncelle
   useEffect(() => {
@@ -268,7 +267,15 @@ function MenuContent() {
       {/* Header */}
       <div className="bg-stone-800 border-b border-stone-700 px-4 py-4 sticky top-0 z-10">
         <div className="flex items-center justify-between mb-3">
-          <h1 className="text-lg font-bold text-amber-500">Monet Cafe</h1>
+          <div className="flex items-center gap-3">
+            {!showCategoryGrid && (
+              <button onClick={() => setShowCategoryGrid(true)}
+                className="text-stone-400 hover:text-white transition text-sm">
+                ← Kategoriler
+              </button>
+            )}
+            <h1 className="text-lg font-bold text-amber-500">Monet Cafe</h1>
+          </div>
           <div className="flex items-center gap-3">
             {tableNumber && (
               <div className="text-stone-400 text-sm">{tableZone} · Masa {tableNumber}</div>
@@ -286,8 +293,8 @@ function MenuContent() {
             )}
           </div>
         </div>
-        {/* Kategori Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        {/* Kategori Tabs — sadece grid kapalıyken göster */}
+        {!showCategoryGrid && <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {campaigns.length > 0 && (
             <button onClick={() => setActiveCategory(-2)}
               className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition ${activeCategory === -2 ? 'bg-orange-500 text-white' : 'bg-stone-700 text-stone-300'}`}>
@@ -306,7 +313,7 @@ function MenuContent() {
               {c.name}
             </button>
           ))}
-        </div>
+        </div>}
       </div>
 
       {/* Siparişlerim Panel */}
@@ -356,8 +363,93 @@ function MenuContent() {
         </div>
       )}
 
+      {/* Kategori Grid */}
+      {showCategoryGrid && (
+        <div className="p-4">
+          <div className="flex flex-col gap-3">
+            {(() => {
+              const rows: React.ReactElement[] = [];
+              let i = 0;
+              const ratios = [[60,40],[35,65],[55,45],[40,60],[65,35]];
+              let ratioIndex = 0;
+              while (i < categories.length) {
+                if (i === 0) {
+                  const cat = categories[i];
+                  rows.push(
+                    <button key={cat.id}
+                      onClick={() => { setActiveCategory(cat.id); setShowCategoryGrid(false); }}
+                      className="relative overflow-hidden rounded-2xl w-full group"
+                      style={{ height: '150px' }}>
+                      {cat.image_url ? (
+                        <img src={cat.image_url} alt={cat.name} className="absolute inset-0 w-full h-full object-cover" />
+                      ) : (
+                        <div className="absolute inset-0 bg-gradient-to-br from-stone-700 to-stone-800" />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <div className="font-bold text-white text-xl">{cat.name}</div>
+                        <div className="text-white/50 text-xs mt-0.5">{products.filter(p => p.category_id === cat.id).length} ürün</div>
+                      </div>
+                    </button>
+                  );
+                  i++;
+                } else if (i + 1 < categories.length) {
+                  const [r1, r2] = ratios[ratioIndex % ratios.length];
+                  ratioIndex++;
+                  const cat1 = categories[i];
+                  const cat2 = categories[i+1];
+                  rows.push(
+                    <div key={`row-${i}`} className="flex gap-3" style={{ height: '110px' }}>
+                      {[{cat: cat1, pct: r1}, {cat: cat2, pct: r2}].map(({cat, pct}) => (
+                        <button key={cat.id}
+                          onClick={() => { setActiveCategory(cat.id); setShowCategoryGrid(false); }}
+                          className="relative overflow-hidden rounded-2xl group"
+                          style={{ width: `${pct}%`, flexShrink: 0 }}>
+                          {cat.image_url ? (
+                            <img src={cat.image_url} alt={cat.name} className="absolute inset-0 w-full h-full object-cover" />
+                          ) : (
+                            <div className="absolute inset-0 bg-gradient-to-br from-stone-700 to-stone-800" />
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                          <div className="absolute bottom-0 left-0 right-0 p-3">
+                            <div className="font-bold text-white text-sm leading-tight">{cat.name}</div>
+                            <div className="text-white/50 text-xs">{products.filter(p => p.category_id === cat.id).length} ürün</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  );
+                  i += 2;
+                } else {
+                  const cat = categories[i];
+                  rows.push(
+                    <button key={cat.id}
+                      onClick={() => { setActiveCategory(cat.id); setShowCategoryGrid(false); }}
+                      className="relative overflow-hidden rounded-2xl w-full group"
+                      style={{ height: '110px' }}>
+                      {cat.image_url ? (
+                        <img src={cat.image_url} alt={cat.name} className="absolute inset-0 w-full h-full object-cover" />
+                      ) : (
+                        <div className="absolute inset-0 bg-gradient-to-br from-stone-700 to-stone-800" />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <div className="font-bold text-white text-lg">{cat.name}</div>
+                        <div className="text-white/50 text-xs">{products.filter(p => p.category_id === cat.id).length} ürün</div>
+                      </div>
+                    </button>
+                  );
+                  i++;
+                }
+              }
+              return rows;
+            })()}
+          </div>
+        </div>
+      )}
+
       {/* Kampanya Listesi */}
-      {activeCategory === -2 && (
+      {!showCategoryGrid && activeCategory === -2 && (
         <div className="p-4 space-y-3">
           {campaigns.map(c => {
             const originalTotal = c.products?.reduce((s: number, p: any) => s + Number(p.original_price), 0) || 0;
@@ -404,7 +496,7 @@ function MenuContent() {
       )}
 
       {/* Ürün Listesi */}
-      {activeCategory !== -2 && (<div className="p-4 space-y-3">
+      {!showCategoryGrid && activeCategory !== -2 && (<div className="p-4 space-y-3">
         {filteredProducts.map(p => {
           const cartItem = cart.find(i => i.product.id === p.id);
           const displayPrice = p.is_campaign && p.campaign_price ? p.campaign_price : p.price;
