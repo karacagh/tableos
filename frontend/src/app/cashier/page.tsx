@@ -6,7 +6,7 @@ import api from '@/lib/api';
 import socket from '@/lib/socket';
 import toast from 'react-hot-toast';
 
-interface OrderItem { id: number; name: string; quantity: number; unit_price: number; note: string; }
+interface OrderItem { id: number; name: string; quantity: number; unit_price: number; note: string; is_paid?: boolean; }
 interface Order { id: number; status: string; table_id: number; waiter_name: string; kitchen_name: string; created_at: string; items: OrderItem[]; }
 interface Table { id: number; number: number; zone: string; }
 interface Bill { id: number; table_id: number; total: number; status: string; note: string; discount_amount: number; }
@@ -30,6 +30,7 @@ export default function CashierPage() {
   const [closing, setClosing] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
   const [notifMessage, setNotifMessage] = useState('');
+  const [billItems, setBillItems] = useState<Record<number, OrderItem[]>>({});
 
   const loadAll = useCallback(async () => {
     try {
@@ -46,6 +47,13 @@ export default function CashierPage() {
     } catch { toast.error('Veriler yüklenemedi'); }
     finally { setLoading(false); }
   }, []);
+
+  async function loadBillItems(billId: number) {
+    try {
+      const res = await api.get(`/api/bills/${billId}/items`);
+      setBillItems(prev => ({ ...prev, [billId]: res.data }));
+    } catch {}
+  }
 
   useEffect(() => {
     const u = getUser();
@@ -88,6 +96,13 @@ export default function CashierPage() {
     }
   }, [selectedTable, orders]);
 
+  useEffect(() => {
+    if (selectedTable) {
+      const b = getTableBill(selectedTable.id);
+      if (b) loadBillItems(b.id);
+    }
+  }, [selectedTable, bills]);
+
   function getTableOrders(tableId: number) {
     return orders.filter(o =>
       o.table_id === tableId &&
@@ -99,13 +114,18 @@ export default function CashierPage() {
     return bills.find(b => b.table_id === tableId && b.status === 'open');
   }
 
-  function getTableTotal(tableId: number): number {
-    const tOrders = getTableOrders(tableId);
-    return tOrders.reduce((sum, o) => sum + (o.items?.reduce((s, i) => s + (i.quantity * i.unit_price), 0) || 0), 0);
+  function getAllItems(tableId: number): OrderItem[] {
+    const bill = getTableBill(tableId);
+    if (bill && billItems[bill.id]) {
+      return billItems[bill.id].filter(i => !i.is_paid);
+    }
+    return orders
+      .filter(o => o.table_id === tableId && !['cancelled'].includes(o.status))
+      .flatMap(o => o.items || []);
   }
 
-  function getAllItems(tableId: number): OrderItem[] {
-    return getTableOrders(tableId).flatMap(o => o.items || []);
+  function getTableTotal(tableId: number): number {
+    return getAllItems(tableId).reduce((s, i) => s + (i.quantity * i.unit_price), 0);
   }
 
   function getSelectedTotal(): number {
@@ -145,6 +165,7 @@ export default function CashierPage() {
       setSelectedTable(null);
       setView('tables');
       setSelectedItems([]);
+      setBillItems({});
       loadAll();
     } catch { toast.error('Hata'); }
     finally { setClosing(false); }
@@ -163,6 +184,8 @@ export default function CashierPage() {
         setSelectedItems([]);
         setView('bill');
       }
+      const bill = getTableBill(selectedTable!.id);
+      if (bill) loadBillItems(bill.id);
       loadAll();
     } catch { toast.error('Hata'); }
     finally { setClosing(false); }

@@ -86,6 +86,25 @@ router.post('/:id/split', auth, roles('admin','manager','cashier'), async (req, 
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// Adisyon kalem detayları
+router.get('/:id/items', auth, roles('admin','manager','cashier'), async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        oi.id, oi.order_id, oi.product_id, oi.quantity, oi.unit_price, oi.note,
+        p.name,
+        CASE WHEN bi.is_paid = true THEN true ELSE false END as is_paid
+      FROM bill_orders bo
+      JOIN order_items oi ON oi.order_id = bo.order_id
+      JOIN products p ON p.id = oi.product_id
+      LEFT JOIN bill_items bi ON bi.order_item_id = oi.id AND bi.bill_id = $1
+      WHERE bo.bill_id = $1
+      ORDER BY oi.id
+    `, [req.params.id]);
+    res.json(result.rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // Kalem iptal
 router.patch('/:id/cancel-item', auth, roles('admin','manager','cashier'), async (req, res) => {
   try {
