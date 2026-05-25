@@ -58,10 +58,15 @@ export default function HomePage() {
     <div className="min-h-screen bg-stone-900 text-white">
 
       {/* HERO */}
-      <div className="relative min-h-screen flex flex-col justify-end overflow-hidden">
+      <div className="relative w-full flex flex-col justify-end overflow-hidden" style={{minHeight: '100svh'}}>
         {/* Arka plan görseli */}
         {heroImage ? (
-          <img src={heroImage} alt={cafeName} className="absolute inset-0 w-full h-full object-cover" />
+          <img
+            src={heroImage}
+            alt={cafeName}
+            className="absolute inset-0 w-full h-full object-cover object-center"
+            style={{objectPosition: 'center center'}}
+          />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-b from-stone-800 via-stone-900 to-stone-950" />
         )}
