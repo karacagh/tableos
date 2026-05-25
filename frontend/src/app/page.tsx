@@ -2,19 +2,19 @@
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 
-interface Category { id: number; name: string; }
+interface Category { id: number; name: string; sort_order: number; image_url?: string; }
 interface Product {
-  id: number; category_id: number; category_name: string;
-  name: string; description: string; price: number;
-  image_url: string; is_campaign: boolean; campaign_price: number;
+  id: number; category_id: number; name: string; description: string;
+  price: number; image_url: string; is_campaign: boolean; campaign_price: number;
 }
 
 export default function HomePage() {
-  const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [settings, setSettings] = useState<any>({});
   const [loading, setLoading] = useState(true);
+  const [showMenu, setShowMenu] = useState(false);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
-  const [siteSettings, setSiteSettings] = useState<any>({});
+  const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -26,8 +26,7 @@ export default function HomePage() {
         ]);
         setCategories(cats.data);
         setProducts(prods.data);
-        const s = settingsRes.data;
-        setSiteSettings(s);
+        setSettings(settingsRes.data);
         if (cats.data.length > 0) setActiveCategory(cats.data[0].id);
       } catch {}
       finally { setLoading(false); }
@@ -35,105 +34,184 @@ export default function HomePage() {
     load();
   }, []);
 
-  const filtered = activeCategory === -1
-    ? products.filter(p => p.is_campaign)
-    : products.filter(p => p.category_id === activeCategory);
+  const cafeName = settings.cafe_name || 'Monet Cafe';
+  const cafeSlogan = settings.cafe_slogan || 'Çikolata Daima İyi Bir Fikirdir.';
+  const cafeInstagram = settings.cafe_instagram || '#';
+  const cafeFacebook = settings.cafe_facebook || '#';
+  const cafeWhatsapp = settings.cafe_whatsapp ? `https://wa.me/${settings.cafe_whatsapp}` : '#';
+  const cafeAbout = settings.cafe_about || '';
+  const cafeAddress = settings.cafe_address || '';
+  const cafePhone = settings.cafe_phone || '';
+  const cafeEmail = settings.cafe_email || '';
+  const cafeCareerEmail = settings.cafe_career_email || '';
+  const heroImage = settings.cafe_hero_image || '';
 
-  const campaigns = products.filter(p => p.is_campaign);
-  const s = siteSettings;
+  const filteredProducts = activeCategory ? products.filter(p => p.category_id === activeCategory) : [];
+
+  if (loading) return (
+    <div className="min-h-screen bg-stone-900 flex items-center justify-center">
+      <div className="text-amber-500 animate-pulse text-lg font-semibold">Yükleniyor...</div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-stone-900 text-white">
-      {/* Hero */}
-      <div className="relative bg-gradient-to-b from-stone-800 to-stone-900 px-6 pt-16 pb-12 text-center overflow-hidden">
-        <div className="absolute inset-0 opacity-10"
-          style={{backgroundImage: 'radial-gradient(circle at 50% 50%, #c8843a 0%, transparent 60%)'}} />
-        <div className="relative z-10">
-          <h1 className="text-5xl font-bold text-amber-500 mb-3" style={{fontFamily:'Georgia,serif'}}>
-            {s.cafe_name || 'Monet Cafe'}
-          </h1>
-          <p className="text-stone-400 text-lg mb-8">{s.cafe_slogan || ''}</p>
-          <a href="#menu"
-            className="inline-block bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold px-8 py-3 rounded-full transition text-lg">
-            Menüyü Keşfet →
-          </a>
-        </div>
-      </div>
 
-      {/* Sosyal Medya */}
-      <div className="flex justify-center gap-6 py-6 border-b border-stone-800">
-        {[
-          { label: 'Instagram', href: s.cafe_instagram || '#', icon: (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-              <rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/>
-              <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/>
-            </svg>
-          )},
-          { label: 'Facebook', href: s.cafe_facebook || '#', icon: (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-            </svg>
-          )},
-          { label: 'WhatsApp', href: s.cafe_whatsapp ? `https://wa.me/${s.cafe_whatsapp}` : '#', icon: (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-            </svg>
-          )},
-        ].map(item => (
-          <a key={item.label} href={item.href}
-            className="flex items-center gap-2 text-stone-400 hover:text-amber-500 transition text-sm">
-            {item.icon}{item.label}
-          </a>
-        ))}
-      </div>
-
-      {/* Menü */}
-      <div id="menu" className="max-w-2xl mx-auto px-4 py-10">
-        <h2 className="text-2xl font-bold text-center text-amber-500 mb-8" style={{fontFamily:'Georgia,serif'}}>
-          Menümüz
-        </h2>
-
-        {/* Kategori Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
-          {campaigns.length > 0 && (
-            <button onClick={() => setActiveCategory(-1)}
-              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition ${activeCategory === -1 ? 'bg-amber-500 text-stone-900' : 'bg-stone-800 text-stone-300 hover:bg-stone-700'}`}>
-              🔥 Kampanya
-            </button>
-          )}
-          {categories.map(c => (
-            <button key={c.id} onClick={() => setActiveCategory(c.id)}
-              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition ${activeCategory === c.id ? 'bg-amber-500 text-stone-900' : 'bg-stone-800 text-stone-300 hover:bg-stone-700'}`}>
-              {c.name}
-            </button>
-          ))}
-        </div>
-
-        {/* Ürünler */}
-        {loading ? (
-          <div className="text-center py-10 text-stone-500">Yükleniyor...</div>
+      {/* HERO */}
+      <div className="relative min-h-screen flex flex-col justify-end overflow-hidden">
+        {/* Arka plan görseli */}
+        {heroImage ? (
+          <img src={heroImage} alt={cafeName} className="absolute inset-0 w-full h-full object-cover" />
         ) : (
-          <div className="space-y-3">
-            {filtered.map(p => {
+          <div className="absolute inset-0 bg-gradient-to-b from-stone-800 via-stone-900 to-stone-950" />
+        )}
+        {/* Karartma overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+
+        {/* İçerik */}
+        <div className="relative z-10 px-6 pb-12 pt-20">
+          <div className="text-center mb-8">
+            <h1 className="text-5xl font-bold text-white mb-3" style={{fontFamily:'Georgia,serif'}}>
+              {cafeName}
+            </h1>
+            <p className="text-white/60 text-lg italic">{cafeSlogan}</p>
+          </div>
+
+          {/* Sosyal Medya */}
+          <div className="flex justify-center gap-5 mb-8">
+            {cafeInstagram !== '#' && (
+              <a href={cafeInstagram} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full transition text-sm text-white/80">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                  <rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/>
+                  <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/>
+                </svg>
+                Instagram
+              </a>
+            )}
+            {cafeFacebook !== '#' && (
+              <a href={cafeFacebook} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full transition text-sm text-white/80">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                </svg>
+                Facebook
+              </a>
+            )}
+            {settings.cafe_whatsapp && (
+              <a href={cafeWhatsapp} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full transition text-sm text-white/80">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                </svg>
+                WhatsApp
+              </a>
+            )}
+          </div>
+
+          {/* Menü Butonu */}
+          <button onClick={() => setShowMenu(true)}
+            className="w-full max-w-sm mx-auto block bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold py-4 rounded-2xl text-lg transition shadow-lg">
+            Menüyü Görüntüle
+          </button>
+        </div>
+      </div>
+
+      {/* KATEGORİ GRID MENÜ */}
+      {!showMenu && (
+        <div className="px-4 py-8">
+          <h2 className="text-2xl font-bold text-center text-white mb-6" style={{fontFamily:'Georgia,serif'}}>
+            Menümüz
+          </h2>
+          <div className="grid grid-cols-2 gap-3">
+            {categories.map((cat, i) => {
+              const isWide = i === 0;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => { setActiveCategory(cat.id); setShowMenu(true); }}
+                  className={`relative overflow-hidden rounded-2xl ${isWide ? 'col-span-2 h-44' : 'h-36'} group`}>
+                  {cat.image_url ? (
+                    <img src={cat.image_url} alt={cat.name}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-stone-700 to-stone-800" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <div className="font-bold text-white text-lg">{cat.name}</div>
+                    <div className="text-white/50 text-xs mt-0.5">
+                      {products.filter(p => p.category_id === cat.id).length} ürün
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* TAM MENÜ GÖRÜNÜMÜ */}
+      {showMenu && (
+        <div className="bg-stone-900 min-h-screen">
+          {/* Üst bar */}
+          <div className="sticky top-0 z-20 bg-stone-900/95 backdrop-blur-sm border-b border-stone-800 px-4 py-3 flex items-center gap-3">
+            <button onClick={() => setShowMenu(false)}
+              className="text-stone-400 hover:text-white transition">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+            </button>
+            <h2 className="text-amber-500 font-bold text-lg" style={{fontFamily:'Georgia,serif'}}>{cafeName}</h2>
+          </div>
+
+          {/* Kategori tabs */}
+          <div className="sticky top-14 z-10 bg-stone-900/95 backdrop-blur-sm border-b border-stone-800">
+            <div className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-hide">
+              {categories.map(cat => (
+                <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
+                  className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition ${activeCategory === cat.id ? 'bg-amber-500 text-stone-900' : 'bg-stone-800 text-stone-300 hover:bg-stone-700'}`}>
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Ürünler — A konsepti: büyük görsel üstte */}
+          <div className="p-4 grid grid-cols-2 gap-3">
+            {filteredProducts.map(p => {
               const price = p.is_campaign && p.campaign_price ? p.campaign_price : p.price;
               return (
-                <div key={p.id} className="bg-stone-800 border border-stone-700 rounded-xl p-4 flex gap-4">
-                  {p.image_url && (
-                    <img src={p.image_url} alt={p.name} className="w-20 h-20 rounded-lg object-cover flex-shrink-0" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <div className="font-semibold text-white">{p.name}</div>
-                        {p.is_campaign && (
-                          <span className="bg-amber-500 text-stone-900 text-xs font-bold px-2 py-0.5 rounded-full">KAMPANYA</span>
-                        )}
-                        {p.description && <div className="text-stone-500 text-sm mt-1">{p.description}</div>}
+                <div key={p.id} className="bg-stone-800 rounded-2xl overflow-hidden border border-stone-700">
+                  {/* Görsel */}
+                  <div className="relative h-36">
+                    {p.image_url ? (
+                      <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-stone-700 to-stone-800 flex items-center justify-center">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(200,132,58,0.3)" strokeWidth="1.5" strokeLinecap="round">
+                          <path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
+                          <line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
+                        </svg>
                       </div>
-                      <div className="text-right flex-shrink-0">
-                        <div className="text-amber-400 font-bold">₺{price}</div>
+                    )}
+                    {p.is_campaign && (
+                      <div className="absolute top-2 left-2 bg-amber-500 text-stone-900 text-xs font-bold px-2 py-0.5 rounded-full">
+                        KAMPANYA
+                      </div>
+                    )}
+                  </div>
+                  {/* Bilgi */}
+                  <div className="p-3">
+                    <div className="font-semibold text-white text-sm mb-0.5 line-clamp-1">{p.name}</div>
+                    {p.description && (
+                      <div className="text-stone-500 text-xs line-clamp-1 mb-2">{p.description}</div>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-amber-400 font-bold">₺{price}</span>
                         {p.is_campaign && p.campaign_price && (
-                          <div className="text-stone-500 text-xs line-through">₺{p.price}</div>
+                          <span className="text-stone-500 text-xs line-through ml-1">₺{p.price}</span>
                         )}
                       </div>
                     </div>
@@ -142,41 +220,36 @@ export default function HomePage() {
               );
             })}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Footer */}
-      <footer className="border-t border-stone-800 px-6 py-10 mt-8">
-        <div className="max-w-2xl mx-auto grid grid-cols-3 gap-6 text-sm mb-8">
+      {/* FOOTER */}
+      <footer className="border-t border-stone-800 px-6 py-10 mt-4">
+        <div className="max-w-lg mx-auto grid grid-cols-3 gap-6 text-sm mb-8">
           <div>
             <h3 className="text-amber-500 font-semibold mb-3">Hakkımızda</h3>
-            <p className="text-stone-500 text-xs leading-relaxed">
-              {s.cafe_about || ''}
-            </p>
+            <p className="text-stone-500 text-xs leading-relaxed">{cafeAbout}</p>
           </div>
           <div>
             <h3 className="text-amber-500 font-semibold mb-3">İletişim</h3>
             <div className="text-stone-500 text-xs space-y-1">
-              {s.cafe_address && <p>📍 {s.cafe_address}</p>}
-              <p>📞 {s.cafe_phone || 'Instagram üzerinden ulaşın'}</p>
-              {s.cafe_email && <p>✉️ {s.cafe_email}</p>}
+              {cafeAddress && <p>📍 {cafeAddress}</p>}
+              {cafePhone && <p>📞 {cafePhone}</p>}
+              {cafeEmail && <p>✉️ {cafeEmail}</p>}
             </div>
           </div>
           <div>
             <h3 className="text-amber-500 font-semibold mb-3">Kariyer</h3>
-            <p className="text-stone-500 text-xs leading-relaxed">
-              Ekibimize katılmak ister misiniz? CV&apos;nizi bize gönderin.
-            </p>
-            {s.cafe_career_email && (
-              <a href={`mailto:${s.cafe_career_email}`}
-                className="text-amber-500 text-xs hover:text-amber-400 transition mt-2 inline-block">
+            <p className="text-stone-500 text-xs leading-relaxed">Ekibimize katılmak ister misiniz?</p>
+            {cafeCareerEmail && (
+              <a href={`mailto:${cafeCareerEmail}`} className="text-amber-500 text-xs hover:text-amber-400 transition mt-2 inline-block">
                 Başvur →
               </a>
             )}
           </div>
         </div>
         <div className="text-center text-stone-600 text-xs border-t border-stone-800 pt-6">
-          © 2025 {s.cafe_name || 'Monet Cafe'} · Tüm hakları saklıdır
+          © 2025 {cafeName} · Tüm hakları saklıdır
           <span className="mx-2">·</span>
           <a href="/login" className="hover:text-stone-400 transition">Yönetim Paneli</a>
         </div>

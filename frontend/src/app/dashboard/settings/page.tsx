@@ -18,6 +18,7 @@ interface Settings {
   cafe_about: string;
   cafe_career_email: string;
   currency: string;
+  cafe_hero_image: string;
 }
 
 export default function SettingsPage() {
@@ -35,6 +36,7 @@ export default function SettingsPage() {
     cafe_about: '',
     cafe_career_email: '',
     currency: 'TRY',
+    cafe_hero_image: '',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -102,6 +104,13 @@ export default function SettingsPage() {
                   <option value="waiter">Garsonlu</option>
                   <option value="self">Self Servis</option>
                 </select>
+              </div>
+              <div>
+                <label className="text-stone-400 text-xs mb-1 block">Ana Sayfa Hero Görseli URL (GIF veya PNG)</label>
+                <input value={settings.cafe_hero_image || ''} onChange={e => setSettings({...settings, cafe_hero_image: e.target.value})}
+                  placeholder="https://..."
+                  className="w-full bg-stone-700 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-500" />
+                <p className="text-stone-600 text-xs mt-1">GIF desteklenir. Boş bırakılırsa gradient arka plan kullanılır.</p>
               </div>
               <div>
                 <label className="text-stone-400 text-xs mb-1 block">Hakkımızda</label>

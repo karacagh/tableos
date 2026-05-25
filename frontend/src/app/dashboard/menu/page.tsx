@@ -5,7 +5,7 @@ import { getUser } from '@/lib/auth';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
-interface Category { id: number; name: string; sort_order: number; }
+interface Category { id: number; name: string; sort_order: number; image_url?: string; }
 interface Product {
   id: number; category_id: number; category_name: string;
   name: string; description: string; price: number;
@@ -21,11 +21,12 @@ export default function MenuPage() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [showCatForm, setShowCatForm] = useState(false);
   const [editProduct, setEditProduct] = useState<Product|null>(null);
+  const [editCat, setEditCat] = useState<Category|null>(null);
   const [saving, setSaving] = useState(false);
 
   const emptyProduct = { category_id: '', name: '', description: '', price: '', image_url: '', is_campaign: false, campaign_price: '' };
   const [productForm, setProductForm] = useState<any>(emptyProduct);
-  const [catForm, setCatForm] = useState({ name: '', sort_order: '0' });
+  const [catForm, setCatForm] = useState({ name: '', sort_order: '0', image_url: '' });
 
   useEffect(() => {
     const u = getUser();
@@ -81,10 +82,29 @@ export default function MenuPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await api.post('/api/categories', { name: catForm.name, sort_order: parseInt(catForm.sort_order) });
+      await api.post('/api/categories', { name: catForm.name, sort_order: parseInt(catForm.sort_order), image_url: catForm.image_url || null });
       toast.success('Kategori eklendi');
-      setCatForm({ name: '', sort_order: '0' });
+      setCatForm({ name: '', sort_order: '0', image_url: '' });
       setShowCatForm(false);
+      loadAll();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Hata oluştu');
+    } finally { setSaving(false); }
+  }
+
+  async function updateCat(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editCat) return;
+    setSaving(true);
+    try {
+      await api.put(`/api/categories/${editCat.id}`, {
+        name: editCat.name,
+        sort_order: editCat.sort_order,
+        is_active: true,
+        image_url: editCat.image_url || null,
+      });
+      toast.success('Kategori güncellendi');
+      setEditCat(null);
       loadAll();
     } catch (err: any) {
       toast.error(err.response?.data?.error || 'Hata oluştu');
@@ -142,24 +162,67 @@ export default function MenuPage() {
       <main className="p-6">
         {/* Kategori Formu */}
         {showCatForm && (
-          <form onSubmit={saveCat} className="bg-stone-800 border border-stone-700 rounded-xl p-5 mb-6 flex gap-4 items-end">
-            <div className="flex-1">
-              <label className="text-stone-400 text-xs mb-1 block">Kategori Adı *</label>
-              <input required value={catForm.name} onChange={e => setCatForm({...catForm, name: e.target.value})}
+          <form onSubmit={saveCat} className="bg-stone-800 border border-stone-700 rounded-xl p-5 mb-6">
+            <div className="flex gap-4 items-end mb-4">
+              <div className="flex-1">
+                <label className="text-stone-400 text-xs mb-1 block">Kategori Adı *</label>
+                <input required value={catForm.name} onChange={e => setCatForm({...catForm, name: e.target.value})}
+                  className="w-full bg-stone-700 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-500" />
+              </div>
+              <div className="w-28">
+                <label className="text-stone-400 text-xs mb-1 block">Sıra</label>
+                <input type="number" value={catForm.sort_order} onChange={e => setCatForm({...catForm, sort_order: e.target.value})}
+                  className="w-full bg-stone-700 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-500" />
+              </div>
+              <button type="submit" disabled={saving}
+                className="bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-stone-900 font-semibold px-5 py-2 rounded-lg text-sm transition">
+                Kaydet
+              </button>
+              <button type="button" onClick={() => setShowCatForm(false)}
+                className="text-stone-400 hover:text-white px-3 py-2 rounded-lg text-sm transition">İptal</button>
+            </div>
+            <div>
+              <label className="text-stone-400 text-xs mb-1 block">Kategori Görseli URL (GIF veya PNG)</label>
+              <input value={catForm.image_url || ''} onChange={e => setCatForm({...catForm, image_url: e.target.value})}
+                placeholder="https://..."
                 className="w-full bg-stone-700 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-500" />
             </div>
-            <div className="w-28">
-              <label className="text-stone-400 text-xs mb-1 block">Sıra</label>
-              <input type="number" value={catForm.sort_order} onChange={e => setCatForm({...catForm, sort_order: e.target.value})}
-                className="w-full bg-stone-700 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-500" />
-            </div>
-            <button type="submit" disabled={saving}
-              className="bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-stone-900 font-semibold px-5 py-2 rounded-lg text-sm transition">
-              Kaydet
-            </button>
-            <button type="button" onClick={() => setShowCatForm(false)}
-              className="text-stone-400 hover:text-white px-3 py-2 rounded-lg text-sm transition">İptal</button>
           </form>
+        )}
+
+        {/* Kategori Düzenleme Modalı */}
+        {editCat && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <form onSubmit={updateCat} className="bg-stone-800 border border-stone-600 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+              <h3 className="text-amber-400 font-semibold mb-4">Kategori Düzenle</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-stone-400 text-xs mb-1 block">Kategori Adı *</label>
+                  <input required value={editCat.name} onChange={e => setEditCat({...editCat, name: e.target.value})}
+                    className="w-full bg-stone-700 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-500" />
+                </div>
+                <div>
+                  <label className="text-stone-400 text-xs mb-1 block">Sıra</label>
+                  <input type="number" value={editCat.sort_order} onChange={e => setEditCat({...editCat, sort_order: parseInt(e.target.value)})}
+                    className="w-full bg-stone-700 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-500" />
+                </div>
+                <div>
+                  <label className="text-stone-400 text-xs mb-1 block">Kategori Görseli URL (GIF veya PNG)</label>
+                  <input value={editCat.image_url || ''} onChange={e => setEditCat({...editCat, image_url: e.target.value})}
+                    placeholder="https://..."
+                    className="w-full bg-stone-700 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-500" />
+                </div>
+              </div>
+              <div className="flex gap-3 mt-5">
+                <button type="submit" disabled={saving}
+                  className="bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-stone-900 font-semibold px-6 py-2 rounded-lg text-sm transition">
+                  {saving ? 'Kaydediliyor...' : 'Güncelle'}
+                </button>
+                <button type="button" onClick={() => setEditCat(null)}
+                  className="text-stone-400 hover:text-white px-4 py-2 rounded-lg text-sm transition">İptal</button>
+              </div>
+            </form>
+          </div>
         )}
 
         {/* Ürün Formu */}
@@ -299,13 +362,18 @@ export default function MenuPage() {
               </div>
             ) : (
               categories.map(c => (
-                <div key={c.id} className="bg-stone-800 border border-stone-700 rounded-xl px-5 py-4 flex items-center justify-between hover:border-stone-500 transition">
-                  <div>
+                <div key={c.id} className="bg-stone-800 border border-stone-700 rounded-xl px-5 py-4 flex items-center gap-4 hover:border-stone-500 transition">
+                  {c.image_url && <img src={c.image_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />}
+                  <div className="flex-1">
                     <div className="font-medium text-white">{c.name}</div>
                     <div className="text-stone-500 text-xs mt-0.5">Sıra: {c.sort_order}</div>
                   </div>
-                  <button onClick={() => deleteCat(c.id)}
-                    className="text-rose-400 hover:text-rose-300 text-sm transition">Sil</button>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button onClick={() => setEditCat(c)}
+                      className="text-blue-400 hover:text-blue-300 text-sm transition">Düzenle</button>
+                    <button onClick={() => deleteCat(c.id)}
+                      className="text-rose-400 hover:text-rose-300 text-sm transition">Sil</button>
+                  </div>
                 </div>
               ))
             )}
