@@ -137,30 +137,103 @@ export default function HomePage() {
           <h2 className="text-2xl font-bold text-center text-white mb-6" style={{fontFamily:'Georgia,serif'}}>
             Menümüz
           </h2>
-          <div className="grid grid-cols-2 gap-3">
-            {categories.map((cat, i) => {
-              const isWide = i === 0;
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => { setActiveCategory(cat.id); setShowMenu(true); }}
-                  className={`relative overflow-hidden rounded-2xl ${isWide ? 'col-span-2 h-44' : 'h-36'} group`}>
-                  {cat.image_url ? (
-                    <img src={cat.image_url} alt={cat.name}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-stone-700 to-stone-800" />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <div className="font-bold text-white text-lg">{cat.name}</div>
-                    <div className="text-white/50 text-xs mt-0.5">
-                      {products.filter(p => p.category_id === cat.id).length} ürün
+          <div className="flex flex-col gap-3">
+            {(() => {
+              const rows: JSX.Element[] = [];
+              let i = 0;
+              const ratios = [
+                [60, 40],
+                [35, 65],
+                [55, 45],
+                [40, 60],
+                [65, 35],
+              ];
+              let ratioIndex = 0;
+
+              while (i < categories.length) {
+                if (i === 0) {
+                  // İlk kategori — tam genişlik
+                  const cat = categories[i];
+                  rows.push(
+                    <button key={cat.id}
+                      onClick={() => { setActiveCategory(cat.id); setShowMenu(true); }}
+                      className="relative overflow-hidden rounded-2xl w-full group"
+                      style={{ height: '160px' }}>
+                      {cat.image_url ? (
+                        <img src={cat.image_url} alt={cat.name}
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      ) : (
+                        <div className="absolute inset-0 bg-gradient-to-br from-stone-700 to-stone-800" />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <div className="font-bold text-white text-xl">{cat.name}</div>
+                        <div className="text-white/50 text-xs mt-0.5">
+                          {products.filter(p => p.category_id === cat.id).length} ürün
+                        </div>
+                      </div>
+                    </button>
+                  );
+                  i++;
+                } else if (i + 1 < categories.length) {
+                  // İkili satır — asimetrik
+                  const [r1, r2] = ratios[ratioIndex % ratios.length];
+                  ratioIndex++;
+                  const cat1 = categories[i];
+                  const cat2 = categories[i + 1];
+                  rows.push(
+                    <div key={`row-${i}`} className="flex gap-3" style={{ height: '120px' }}>
+                      {[{ cat: cat1, flex: r1 }, { cat: cat2, flex: r2 }].map(({ cat, flex }) => (
+                        <button key={cat.id}
+                          onClick={() => { setActiveCategory(cat.id); setShowMenu(true); }}
+                          className="relative overflow-hidden rounded-2xl group"
+                          style={{ flex }}>
+                          {cat.image_url ? (
+                            <img src={cat.image_url} alt={cat.name}
+                              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                          ) : (
+                            <div className="absolute inset-0 bg-gradient-to-br from-stone-700 to-stone-800" />
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                          <div className="absolute bottom-0 left-0 right-0 p-3">
+                            <div className="font-bold text-white text-sm leading-tight">{cat.name}</div>
+                            <div className="text-white/50 text-xs mt-0.5">
+                              {products.filter(p => p.category_id === cat.id).length} ürün
+                            </div>
+                          </div>
+                        </button>
+                      ))}
                     </div>
-                  </div>
-                </button>
-              );
-            })}
+                  );
+                  i += 2;
+                } else {
+                  // Son tek kalan kategori — tam genişlik
+                  const cat = categories[i];
+                  rows.push(
+                    <button key={cat.id}
+                      onClick={() => { setActiveCategory(cat.id); setShowMenu(true); }}
+                      className="relative overflow-hidden rounded-2xl w-full group"
+                      style={{ height: '120px' }}>
+                      {cat.image_url ? (
+                        <img src={cat.image_url} alt={cat.name}
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      ) : (
+                        <div className="absolute inset-0 bg-gradient-to-br from-stone-700 to-stone-800" />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <div className="font-bold text-white text-lg">{cat.name}</div>
+                        <div className="text-white/50 text-xs mt-0.5">
+                          {products.filter(p => p.category_id === cat.id).length} ürün
+                        </div>
+                      </div>
+                    </button>
+                  );
+                  i++;
+                }
+              }
+              return rows;
+            })()}
           </div>
         </div>
       )}
