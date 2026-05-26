@@ -70,13 +70,29 @@ router.post('/', async (req, res) => {
       );
     }
 
-    // Aktif adisyon varsa otomatik bağla
-    const activeBill = await client.query(
+    let activeBill = await client.query(
       'SELECT * FROM bills WHERE table_id=$1 AND status=$2',
       [table_id, 'open']
     );
 
     let billId = null;
+
+    if (!activeBill.rows[0]) {
+      // Aktif adisyon yok — otomatik aç
+      const dateKey = new Date().toISOString().slice(2,10).replace(/-/g,'');
+      const seqRes = await client.query(
+        'INSERT INTO bill_sequences (date_key, last_seq) VALUES ($1, 1) ON CONFLICT (date_key) DO UPDATE SET last_seq = bill_sequences.last_seq + 1 RETURNING last_seq',
+        [dateKey]
+      );
+      const billNumber = dateKey + String(seqRes.rows[0].last_seq).padStart(3, '0');
+      const newBill = await client.query(
+        'INSERT INTO bills (table_id, total, bill_number) VALUES ($1, 0, $2) RETURNING *',
+        [table_id, billNumber]
+      );
+      activeBill = { rows: [newBill.rows[0]] };
+      req.io.emit('bill_opened', newBill.rows[0]);
+    }
+
     if (activeBill.rows[0]) {
       billId = activeBill.rows[0].id;
       await client.query(
