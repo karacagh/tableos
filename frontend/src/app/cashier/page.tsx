@@ -42,7 +42,7 @@ export default function CashierPage() {
       ]);
       setTables(t.data);
       setOrders(o.data);
-      setBills(b.data);
+      setBills([...b.data]);
       setNotifications(n.data);
     } catch { toast.error('Veriler yüklenemedi'); }
     finally { setLoading(false); }
@@ -104,9 +104,18 @@ export default function CashierPage() {
   }, [selectedTable, bills]);
 
   function getTableOrders(tableId: number) {
+    const bill = getTableBill(tableId);
+    if (bill) {
+      // Adisyon açıksa sadece bu adisyona bağlı siparişleri göster
+      return orders.filter(o =>
+        o.table_id === tableId &&
+        !['cancelled'].includes(o.status)
+      );
+    }
+    // Adisyon yoksa sadece teslim edilmemiş siparişleri göster
     return orders.filter(o =>
       o.table_id === tableId &&
-      !['cancelled'].includes(o.status)
+      !['cancelled', 'delivered'].includes(o.status)
     );
   }
 
@@ -117,11 +126,17 @@ export default function CashierPage() {
   function getAllItems(tableId: number): OrderItem[] {
     const bill = getTableBill(tableId);
     if (bill && billItems[bill.id]) {
-      return billItems[bill.id].filter(i => !i.is_paid);
+      return billItems[bill.id].filter(i => !i.is_paid).map(i => ({
+        ...i,
+        unit_price: parseFloat(String(i.unit_price)),
+      }));
     }
     return orders
       .filter(o => o.table_id === tableId && !['cancelled'].includes(o.status))
-      .flatMap(o => o.items || []);
+      .flatMap(o => (o.items || []).map((i: OrderItem) => ({
+        ...i,
+        unit_price: parseFloat(String(i.unit_price)),
+      })));
   }
 
   function getTableTotal(tableId: number): number {
@@ -130,16 +145,9 @@ export default function CashierPage() {
 
   function getSelectedTotal(): number {
     const items = selectedTable ? getAllItems(selectedTable.id) : [];
-    const expandedItems = items.flatMap(item =>
-      Array.from({ length: item.quantity }, (_, i) => ({
-        ...item,
-        _splitId: `${item.id}_${i}`,
-        quantity: 1,
-      }))
-    );
-    return expandedItems
-      .filter(i => selectedItems.includes(i._splitId))
-      .reduce((s, i) => s + i.unit_price, 0);
+    return items
+      .filter(i => selectedItems.includes((i as any)._splitId || String(i.id)))
+      .reduce((s, i) => s + (i.quantity * parseFloat(String(i.unit_price))), 0);
   }
 
   async function openBill(table: Table) {
@@ -166,7 +174,7 @@ export default function CashierPage() {
       setView('tables');
       setSelectedItems([]);
       setBillItems({});
-      loadAll();
+      await loadAll();
     } catch { toast.error('Hata'); }
     finally { setClosing(false); }
   }
@@ -235,7 +243,7 @@ export default function CashierPage() {
       <header className="bg-stone-800 border-b border-stone-700 px-6 py-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-4">
           {selectedTable && view !== 'tables' && (
-            <button onClick={() => { setView('tables'); setSelectedTable(null); setSelectedItems([]); }}
+            <button onClick={() => { setView('tables'); setSelectedTable(null); setSelectedItems([]); setBillItems({}); }}
               className="text-stone-400 hover:text-white transition text-sm">← Masalar</button>
           )}
           <h1 className="text-lg font-bold text-amber-500">Kasa</h1>
