@@ -24,6 +24,7 @@ router.get('/', auth, async (req, res) => {
         t.number as table_number, t.zone as table_zone,
         w.name as waiter_name,
         k.name as kitchen_name,
+        b.bill_number,
         json_agg(json_build_object(
           'id', oi.id,
           'product_id', oi.product_id,
@@ -36,10 +37,11 @@ router.get('/', auth, async (req, res) => {
       LEFT JOIN tables t ON o.table_id = t.id
       LEFT JOIN users w ON o.waiter_id = w.id
       LEFT JOIN users k ON o.kitchen_user_id = k.id
+      LEFT JOIN bills b ON b.id = o.bill_id
       LEFT JOIN order_items oi ON o.id = oi.order_id
       LEFT JOIN products p ON oi.product_id = p.id
       WHERE 1=1 ${dateFilter} ${statusFilter}
-      GROUP BY o.id, t.number, t.zone, w.name, k.name
+      GROUP BY o.id, t.number, t.zone, w.name, k.name, b.bill_number
       ORDER BY o.created_at DESC
     `, params);
     res.json(result.rows);
@@ -68,18 +70,36 @@ router.post('/', async (req, res) => {
       );
     }
 
+    // Aktif adisyon varsa otomatik bağla
+    const activeBill = await client.query(
+      'SELECT * FROM bills WHERE table_id=$1 AND status=$2',
+      [table_id, 'open']
+    );
+
+    let billId = null;
+    if (activeBill.rows[0]) {
+      billId = activeBill.rows[0].id;
+      await client.query(
+        'INSERT INTO bill_orders (bill_id, order_id) VALUES ($1,$2) ON CONFLICT DO NOTHING',
+        [billId, order.id]
+      );
+      await client.query('UPDATE orders SET bill_id=$1 WHERE id=$2', [billId, order.id]);
+      await client.query(`
+        UPDATE bills SET total = (
+          SELECT COALESCE(SUM(oi.quantity * oi.unit_price), 0)
+          FROM bill_orders bo JOIN order_items oi ON oi.order_id = bo.order_id
+          WHERE bo.bill_id = $1
+        ) WHERE id = $1
+      `, [billId]);
+    }
+
     await client.query('COMMIT');
-
-    // Socket.io ile tüm panellere bildir
-    req.io.emit('new_order', { order_id: order.id, table_id, items });
-
-    res.status(201).json(order);
+    req.io.emit('new_order', { order_id: order.id, table_id, bill_id: billId, items });
+    res.status(201).json({ ...order, bill_id: billId });
   } catch (err) {
     await client.query('ROLLBACK');
     res.status(500).json({ error: err.message });
-  } finally {
-    client.release();
-  }
+  } finally { client.release(); }
 });
 
 // Sipariş durumu güncelle (garson/mutfak)

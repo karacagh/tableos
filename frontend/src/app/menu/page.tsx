@@ -76,26 +76,28 @@ function MenuContent() {
 
   async function loadTableOrders(tid: number) {
     try {
-      const [ordersRes, billsRes] = await Promise.all([
+      const [ordersRes, activeBillRes] = await Promise.all([
         api.get('/api/orders'),
-        api.get('/api/bills'),
+        api.get('/api/bills/table/' + tid),
       ]);
 
-      const tableBills = billsRes.data.filter((b: any) => b.table_id === tid);
-      const hasOpenBill = tableBills.some((b: any) => b.status === 'open');
-      const openBill = tableBills.find((b: any) => b.status === 'open');
+      const activeBill = activeBillRes.data;
 
-      if (tableBills.length > 0 && !hasOpenBill) {
+      if (!activeBill) {
+        // Aktif adisyon yok — masa boş, yeni müşteri
         setMyOrders([]);
         setBill(null);
         return;
       }
 
+      // Sadece bu adisyona bağlı siparişleri göster
       const filtered = ordersRes.data.filter((o: any) =>
-        o.table_id === tid && !['cancelled'].includes(o.status)
+        o.bill_id === activeBill.id ||
+        (o.table_id === tid && !['cancelled','delivered'].includes(o.status))
       );
+
       setMyOrders(filtered);
-      setBill(openBill || null);
+      setBill(activeBill);
     } catch {}
   }
 

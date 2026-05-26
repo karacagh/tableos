@@ -7,9 +7,9 @@ import socket from '@/lib/socket';
 import toast from 'react-hot-toast';
 
 interface OrderItem { id: number; name: string; quantity: number; unit_price: number; note: string; is_paid?: boolean; }
-interface Order { id: number; status: string; table_id: number; waiter_name: string; kitchen_name: string; created_at: string; items: OrderItem[]; }
+interface Order { id: number; status: string; table_id: number; bill_id?: number; waiter_name: string; kitchen_name: string; created_at: string; items: OrderItem[]; }
 interface Table { id: number; number: number; zone: string; }
-interface Bill { id: number; table_id: number; total: number; status: string; note: string; discount_amount: number; }
+interface Bill { id: number; table_id: number; total: number; status: string; bill_number: string; note: string; discount_amount: number; }
 interface Notification { id: number; sender_name: string; sender_role: string; message: string; type: string; is_read: boolean; created_at: string; }
 
 type PaymentMethod = 'cash' | 'card' | 'meal_card';
@@ -106,16 +106,13 @@ export default function CashierPage() {
   function getTableOrders(tableId: number) {
     const bill = getTableBill(tableId);
     if (bill) {
-      // Adisyon açıksa sadece bu adisyona bağlı siparişleri göster
       return orders.filter(o =>
-        o.table_id === tableId &&
-        !['cancelled'].includes(o.status)
+        o.bill_id === bill.id ||
+        (o.table_id === tableId && !['cancelled','delivered'].includes(o.status))
       );
     }
-    // Adisyon yoksa sadece teslim edilmemiş siparişleri göster
     return orders.filter(o =>
-      o.table_id === tableId &&
-      !['cancelled', 'delivered'].includes(o.status)
+      o.table_id === tableId && !['cancelled','delivered'].includes(o.status)
     );
   }
 
@@ -154,8 +151,7 @@ export default function CashierPage() {
     const tOrders = getTableOrders(table.id);
     if (tOrders.length === 0) { toast.error('Bu masada aktif sipariş yok'); return; }
     try {
-      const total = getTableTotal(table.id);
-      await api.post('/api/bills', { table_id: table.id, order_ids: tOrders.map(o => o.id), total });
+      await api.post('/api/bills', { table_id: table.id });
       toast.success('Adisyon açıldı');
       loadAll();
       setView('bill');
@@ -348,7 +344,12 @@ export default function CashierPage() {
           {selectedTable && view === 'bill' && (
             <div className="max-w-2xl">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-amber-400">{selectedTable.zone} · Masa {selectedTable.number}</h2>
+                <div>
+                  <h2 className="text-lg font-bold text-amber-400">{selectedTable.zone} · Masa {selectedTable.number}</h2>
+                  {bill && (
+                    <div className="text-stone-500 text-xs mt-0.5">Fiş No: {bill.bill_number}</div>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   {bill && (
                     <button onClick={() => setView('split')}
