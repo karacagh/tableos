@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getUser } from '@/lib/auth';
+import { getUser, clearAuth, User } from '@/lib/auth';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
@@ -27,12 +27,16 @@ export default function MenuPage() {
   const emptyProduct = { category_id: '', name: '', description: '', price: '', image_url: '', is_campaign: false, campaign_price: '' };
   const [productForm, setProductForm] = useState<any>(emptyProduct);
   const [catForm, setCatForm] = useState({ name: '', sort_order: '0', image_url: '' });
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const u = getUser();
     if (!u || !['admin','manager'].includes(u.role)) { router.replace('/login'); return; }
+    setUser(u);
     loadAll();
   }, []);
+
+  function logout() { clearAuth(); router.replace('/login'); }
 
   async function loadAll() {
     try {
@@ -147,15 +151,24 @@ export default function MenuPage() {
           <a href="/dashboard" className="text-stone-400 hover:text-white transition text-sm">← Geri</a>
           <h1 className="text-lg font-bold text-amber-500">Menü Yönetimi</h1>
         </div>
-        <div className="flex gap-2">
-          <button onClick={() => { setShowCatForm(!showCatForm); setShowProductForm(false); }}
-            className="bg-stone-700 hover:bg-stone-600 text-white px-4 py-2 rounded-lg text-sm transition">
-            + Kategori
-          </button>
-          <button onClick={() => { setShowProductForm(!showProductForm); setShowCatForm(false); setEditProduct(null); setProductForm(emptyProduct); }}
-            className="bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold px-4 py-2 rounded-lg text-sm transition">
-            + Ürün
-          </button>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <span className="text-stone-400 text-sm">{user?.name}</span>
+            <button onClick={logout}
+              className="text-stone-500 hover:text-white text-sm transition border border-stone-700 hover:border-stone-500 px-3 py-1 rounded-lg">
+              Çıkış
+            </button>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => { setShowCatForm(!showCatForm); setShowProductForm(false); }}
+              className="bg-stone-700 hover:bg-stone-600 text-white px-4 py-2 rounded-lg text-sm transition">
+              + Kategori
+            </button>
+            <button onClick={() => { setShowProductForm(!showProductForm); setShowCatForm(false); setEditProduct(null); setProductForm(emptyProduct); }}
+              className="bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold px-4 py-2 rounded-lg text-sm transition">
+              + Ürün
+            </button>
+          </div>
         </div>
       </header>
 

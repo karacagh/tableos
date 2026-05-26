@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getUser } from '@/lib/auth';
+import { getUser, clearAuth, User } from '@/lib/auth';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
@@ -31,12 +31,16 @@ export default function OrdersPage() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [statusFilter, setStatusFilter] = useState('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const u = getUser();
     if (!u || !['admin','manager'].includes(u.role)) { router.replace('/login'); return; }
+    setUser(u);
     loadOrders();
   }, []);
+
+  function logout() { clearAuth(); router.replace('/login'); }
 
   async function loadOrders(d = date, s = statusFilter) {
     setLoading(true);
@@ -87,6 +91,11 @@ export default function OrdersPage() {
           <button onClick={() => loadOrders()}
             className="bg-stone-700 hover:bg-stone-600 px-3 py-2 rounded-lg text-sm transition">
             Yenile
+          </button>
+          <span className="text-stone-400 text-sm">{user?.name}</span>
+          <button onClick={logout}
+            className="text-stone-500 hover:text-white text-sm transition border border-stone-700 hover:border-stone-500 px-3 py-1 rounded-lg">
+            Çıkış
           </button>
         </div>
       </header>

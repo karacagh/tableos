@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getUser } from '@/lib/auth';
+import { getUser, clearAuth } from '@/lib/auth';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
@@ -26,12 +26,16 @@ export default function NotificationsPage() {
   const [form, setForm] = useState({ message: '', target_role: 'all', target_user_id: '', type: 'info' });
   const [sending, setSending] = useState(false);
   const [filter, setFilter] = useState('all');
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
     const u = getUser();
     if (!u || !['admin','manager'].includes(u.role)) { router.replace('/login'); return; }
+    setCurrentUser(u as User);
     loadAll();
   }, []);
+
+  function logout() { clearAuth(); router.replace('/login'); }
 
   async function loadAll() {
     setLoading(true);
@@ -121,6 +125,11 @@ export default function NotificationsPage() {
           <button onClick={() => setShowForm(!showForm)}
             className="bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold px-4 py-2 rounded-lg text-sm transition">
             + Bildirim Gönder
+          </button>
+          <span className="text-stone-400 text-sm">{currentUser?.name}</span>
+          <button onClick={logout}
+            className="text-stone-500 hover:text-white text-sm transition border border-stone-700 hover:border-stone-500 px-3 py-1 rounded-lg">
+            Çıkış
           </button>
         </div>
       </header>

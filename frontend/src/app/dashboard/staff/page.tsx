@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getUser } from '@/lib/auth';
+import { getUser, clearAuth, User } from '@/lib/auth';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
@@ -33,12 +33,16 @@ export default function StaffPage() {
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'waiter' });
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const u = getUser();
     if (!u || !['admin','manager'].includes(u.role)) { router.replace('/login'); return; }
+    setUser(u);
     loadStaff();
   }, []);
+
+  function logout() { clearAuth(); router.replace('/login'); }
 
   async function loadStaff() {
     try {
@@ -86,10 +90,19 @@ export default function StaffPage() {
           <a href="/dashboard" className="text-stone-400 hover:text-white transition text-sm">← Geri</a>
           <h1 className="text-lg font-bold text-amber-500">Personel Yönetimi</h1>
         </div>
-        <button onClick={() => setShowForm(!showForm)}
-          className="bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold px-4 py-2 rounded-lg text-sm transition">
-          + Personel Ekle
-        </button>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <span className="text-stone-400 text-sm">{user?.name}</span>
+            <button onClick={logout}
+              className="text-stone-500 hover:text-white text-sm transition border border-stone-700 hover:border-stone-500 px-3 py-1 rounded-lg">
+              Çıkış
+            </button>
+          </div>
+          <button onClick={() => setShowForm(!showForm)}
+            className="bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold px-4 py-2 rounded-lg text-sm transition">
+            + Personel Ekle
+          </button>
+        </div>
       </header>
 
       <main className="p-6">

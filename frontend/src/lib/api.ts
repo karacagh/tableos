@@ -21,6 +21,7 @@ api.interceptors.response.use(
       const isPublic = publicPaths.some(p => path.startsWith(p));
       if (!isPublic) {
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
         window.location.href = '/login';
       }
     }

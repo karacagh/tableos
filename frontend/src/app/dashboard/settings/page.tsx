@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getUser } from '@/lib/auth';
+import { getUser, clearAuth, User } from '@/lib/auth';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
@@ -42,12 +42,16 @@ export default function SettingsPage() {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const u = getUser();
     if (!u || !['admin','manager'].includes(u.role)) { router.replace('/login'); return; }
+    setUser(u);
     loadSettings();
   }, []);
+
+  function logout() { clearAuth(); router.replace('/login'); }
 
   async function loadSettings() {
     try {
@@ -79,6 +83,13 @@ export default function SettingsPage() {
         <div className="flex items-center gap-3">
           <a href="/dashboard" className="text-stone-400 hover:text-white transition text-sm">← Geri</a>
           <h1 className="text-lg font-bold text-amber-500">Cafe Ayarları</h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-stone-400 text-sm">{user?.name}</span>
+          <button onClick={logout}
+            className="text-stone-500 hover:text-white text-sm transition border border-stone-700 hover:border-stone-500 px-3 py-1 rounded-lg">
+            Çıkış
+          </button>
         </div>
       </header>
 

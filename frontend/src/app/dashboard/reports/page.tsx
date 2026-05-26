@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getUser } from '@/lib/auth';
+import { getUser, clearAuth, User } from '@/lib/auth';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
@@ -31,12 +31,16 @@ export default function ReportsPage() {
   const [customEnd, setCustomEnd] = useState('');
   const [loading, setLoading] = useState(true);
   const [rangeReport, setRangeReport] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const u = getUser();
     if (!u || !['admin','manager'].includes(u.role)) { router.replace('/login'); return; }
+    setUser(u);
     loadReports();
   }, []);
+
+  function logout() { clearAuth(); router.replace('/login'); }
 
   async function loadReports(d?: string) {
     setLoading(true);
@@ -97,6 +101,15 @@ export default function ReportsPage() {
         <div className="flex items-center gap-3">
           <a href="/dashboard" className="text-stone-400 hover:text-white transition text-sm">← Geri</a>
           <h1 className="text-lg font-bold text-amber-500">Raporlar</h1>
+        </div>
+
+        {/* Kullanıcı + Çıkış */}
+        <div className="flex items-center gap-3">
+          <span className="text-stone-400 text-sm">{user?.name}</span>
+          <button onClick={logout}
+            className="text-stone-500 hover:text-white text-sm transition border border-stone-700 hover:border-stone-500 px-3 py-1 rounded-lg">
+            Çıkış
+          </button>
         </div>
 
         {/* Filtre Butonları */}

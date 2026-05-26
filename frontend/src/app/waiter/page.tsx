@@ -143,7 +143,11 @@ export default function WaiterPage() {
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 rounded-full text-xs flex items-center justify-center">{unreadNotifs}</span>
             )}
           </button>
-          <button onClick={logout} className="text-stone-500 hover:text-white text-sm transition">Çıkış</button>
+          <span className="text-stone-400 text-sm">{user?.name}</span>
+          <button onClick={logout}
+            className="text-stone-500 hover:text-white text-sm transition border border-stone-700 hover:border-stone-500 px-3 py-1 rounded-lg">
+            Çıkış
+          </button>
         </div>
       </header>
 

@@ -80,9 +80,21 @@ function MenuContent() {
         api.get('/api/orders'),
         api.get('/api/bills'),
       ]);
-      const filtered = ordersRes.data.filter((o: any) => o.table_id === tid && o.status !== 'cancelled');
+
+      const tableBills = billsRes.data.filter((b: any) => b.table_id === tid);
+      const hasOpenBill = tableBills.some((b: any) => b.status === 'open');
+      const openBill = tableBills.find((b: any) => b.status === 'open');
+
+      if (tableBills.length > 0 && !hasOpenBill) {
+        setMyOrders([]);
+        setBill(null);
+        return;
+      }
+
+      const filtered = ordersRes.data.filter((o: any) =>
+        o.table_id === tid && !['cancelled'].includes(o.status)
+      );
       setMyOrders(filtered);
-      const openBill = billsRes.data.find((b: Bill) => b.status === 'open');
       setBill(openBill || null);
     } catch {}
   }

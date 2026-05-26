@@ -62,8 +62,9 @@ export default function Dashboard() {
           <p className="text-stone-400 text-xs mt-0.5">Yönetim Paneli</p>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-stone-300 text-sm">{user?.name}</span>
-          <button onClick={logout} className="text-stone-400 hover:text-white text-sm transition">
+          <span className="text-stone-400 text-sm">{user?.name}</span>
+          <button onClick={logout}
+            className="text-stone-500 hover:text-white text-sm transition border border-stone-700 hover:border-stone-500 px-3 py-1 rounded-lg">
             Çıkış
           </button>
         </div>

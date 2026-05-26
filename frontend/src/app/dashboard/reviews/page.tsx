@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getUser } from '@/lib/auth';
+import { getUser, clearAuth, User } from '@/lib/auth';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
@@ -31,12 +31,16 @@ export default function ReviewsPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [date, setDate] = useState('');
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const u = getUser();
     if (!u || !['admin','manager'].includes(u.role)) { router.replace('/login'); return; }
+    setUser(u);
     loadAll();
   }, []);
+
+  function logout() { clearAuth(); router.replace('/login'); }
 
   async function loadAll(d = date) {
     setLoading(true);
@@ -73,6 +77,11 @@ export default function ReviewsPage() {
             <button onClick={() => { setDate(''); loadAll(''); }}
               className="text-stone-400 hover:text-white text-sm transition">Tümü</button>
           )}
+          <span className="text-stone-400 text-sm">{user?.name}</span>
+          <button onClick={logout}
+            className="text-stone-500 hover:text-white text-sm transition border border-stone-700 hover:border-stone-500 px-3 py-1 rounded-lg">
+            Çıkış
+          </button>
         </div>
       </header>
 
