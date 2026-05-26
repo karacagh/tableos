@@ -51,18 +51,21 @@ function MenuContent() {
   const [review, setReview] = useState({ product: 0, ambiance: 0, service: 0, note: '' });
   const [reviewSent, setReviewSent] = useState(false);
   const [showCategoryGrid, setShowCategoryGrid] = useState(true);
+  const [settings, setSettings] = useState<{ cafe_instagram?: string; cafe_facebook?: string }>({});
 
   const loadAll = useCallback(async () => {
     try {
-      const [cats, prods, tables, camps] = await Promise.all([
+      const [cats, prods, tables, camps, sett] = await Promise.all([
         api.get('/api/categories'),
         api.get('/api/products'),
         api.get('/api/tables'),
         api.get('/api/campaigns'),
+        api.get('/api/settings').catch(() => ({ data: {} })),
       ]);
       setCategories(cats.data);
       setProducts(prods.data);
       setCampaigns(camps.data);
+      setSettings(sett.data || {});
       if (tableNumber) {
         const t = tables.data.find((t: any) => t.number === parseInt(tableNumber));
         if (t) {
@@ -259,9 +262,34 @@ function MenuContent() {
             <h2 className="text-2xl font-bold text-white mb-2">Teşekkürler!</h2>
             <p className="text-stone-400 mb-6">Değerlendirmeniz kaydedildi.</p>
             <button onClick={() => { setOrdered(false); setReviewSent(false); setShowReview(false); loadAll(); }}
-              className="bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold px-6 py-3 rounded-xl transition">
+              className="bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold px-6 py-3 rounded-xl transition mb-6">
               Yeni Sipariş Ver
             </button>
+            {(settings.cafe_instagram || settings.cafe_facebook) && (
+              <div className="flex flex-col gap-3 mt-2">
+                <div className="text-stone-600 text-xs text-center uppercase tracking-wider">Bizi Takip Et</div>
+                {settings.cafe_instagram && (
+                  <a href={settings.cafe_instagram} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-semibold px-6 py-3 rounded-xl transition hover:opacity-90 text-sm">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                      <rect x="2" y="2" width="20" height="20" rx="5"/>
+                      <circle cx="12" cy="12" r="4"/>
+                      <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/>
+                    </svg>
+                    Instagram'da Takip Et
+                  </a>
+                )}
+                {settings.cafe_facebook && (
+                  <a href={settings.cafe_facebook} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 bg-blue-600 text-white font-semibold px-6 py-3 rounded-xl transition hover:bg-blue-700 text-sm">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                    </svg>
+                    Facebook'ta Takip Et
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -558,6 +586,31 @@ function MenuContent() {
             </div>
           );
         })}
+        {(settings.cafe_instagram || settings.cafe_facebook) && (
+          <div className="mt-6 mb-4 flex flex-col gap-3 px-1">
+            <div className="text-stone-600 text-xs text-center uppercase tracking-wider">Bizi Takip Et</div>
+            {settings.cafe_instagram && (
+              <a href={settings.cafe_instagram} target="_blank" rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-semibold px-6 py-3 rounded-xl transition hover:opacity-90 text-sm">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                  <rect x="2" y="2" width="20" height="20" rx="5"/>
+                  <circle cx="12" cy="12" r="4"/>
+                  <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/>
+                </svg>
+                Instagram'da Takip Et
+              </a>
+            )}
+            {settings.cafe_facebook && (
+              <a href={settings.cafe_facebook} target="_blank" rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 bg-blue-600 text-white font-semibold px-6 py-3 rounded-xl transition hover:bg-blue-700 text-sm">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                </svg>
+                Facebook'ta Takip Et
+              </a>
+            )}
+          </div>
+        )}
       </div>)}
 
       {/* Sepet Butonu */}
