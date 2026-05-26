@@ -37,7 +37,6 @@ export default function HomePage() {
   const cafeName = settings.cafe_name || 'Monet Cafe';
   const cafeSlogan = settings.cafe_slogan || 'Çikolata Daima İyi Bir Fikirdir.';
   const cafeInstagram = settings.cafe_instagram || '#';
-  const cafeFacebook = settings.cafe_facebook || '#';
   const cafeWhatsapp = settings.cafe_whatsapp ? `https://wa.me/${settings.cafe_whatsapp}` : '#';
   const cafeAbout = settings.cafe_about || '';
   const cafeAddress = settings.cafe_address || '';
@@ -101,15 +100,6 @@ export default function HomePage() {
                   <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/>
                 </svg>
                 Instagram
-              </a>
-            )}
-            {cafeFacebook !== '#' && (
-              <a href={cafeFacebook} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full transition text-sm text-white/80">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-                </svg>
-                Facebook
               </a>
             )}
             {settings.cafe_whatsapp && (

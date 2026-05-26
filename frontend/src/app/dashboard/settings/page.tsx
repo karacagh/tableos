@@ -13,7 +13,6 @@ interface Settings {
   cafe_phone: string;
   cafe_email: string;
   cafe_instagram: string;
-  cafe_facebook: string;
   cafe_whatsapp: string;
   cafe_about: string;
   cafe_career_email: string;
@@ -32,7 +31,6 @@ export default function SettingsPage() {
     cafe_phone: '',
     cafe_email: '',
     cafe_instagram: '',
-    cafe_facebook: '',
     cafe_whatsapp: '',
     cafe_about: '',
     cafe_career_email: '',
@@ -180,12 +178,6 @@ export default function SettingsPage() {
                 <label className="text-stone-400 text-xs mb-1 block">Instagram URL</label>
                 <input value={settings.cafe_instagram} onChange={e => setSettings({...settings, cafe_instagram: e.target.value})}
                   placeholder="https://instagram.com/..."
-                  className="w-full bg-stone-700 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-500" />
-              </div>
-              <div>
-                <label className="text-stone-400 text-xs mb-1 block">Facebook URL</label>
-                <input value={settings.cafe_facebook} onChange={e => setSettings({...settings, cafe_facebook: e.target.value})}
-                  placeholder="https://facebook.com/..."
                   className="w-full bg-stone-700 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-500" />
               </div>
               <div>
