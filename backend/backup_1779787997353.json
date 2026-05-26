@@ -1,0 +1,975 @@
+-- TableOS Backup 2026-05-26T09:33:15.250Z
+
+-- TABLE: users (4 rows)
+[
+  {
+    "id": 2,
+    "name": "Liva Karaca",
+    "email": "liva@monetcafe.net",
+    "password_hash": "$2b$10$1tj4UuMOjHfB/dFtVY/WKeEIsZ0c3x.MMcQ8PJpM6QUAt1VRqZK9S",
+    "role": "waiter",
+    "is_active": true,
+    "created_at": "2026-05-23T08:53:09.232Z"
+  },
+  {
+    "id": 3,
+    "name": "Ahmet Karaca",
+    "email": "ahmet@monetcafe.net",
+    "password_hash": "$2b$10$m9aA4OeHj.QlG7Jg2aQcruoshY4oWsOwdE9OeGkXyztPdiARN0oVu",
+    "role": "kitchen",
+    "is_active": true,
+    "created_at": "2026-05-23T08:53:31.146Z"
+  },
+  {
+    "id": 4,
+    "name": "Emel Karaca",
+    "email": "emel@monetcafe.net",
+    "password_hash": "$2b$10$nJV1/CcEEjuicnyvYJ7jVeIBSdSXxf1Z3hGGrP9yOBNbw9DVwqkqm",
+    "role": "cashier",
+    "is_active": true,
+    "created_at": "2026-05-23T08:53:58.247Z"
+  },
+  {
+    "id": 1,
+    "name": "Admin",
+    "email": "admin@monetcafe.net",
+    "password_hash": "$2b$10$kQs/bsnPWEFYD5fNg65x0OqJRlmGQNjHpLSAoqF/fXXQ6PE.hjMzy",
+    "role": "admin",
+    "is_active": true,
+    "created_at": "2026-05-23T06:45:37.951Z"
+  }
+]
+
+-- TABLE: tables (6 rows)
+[
+  {
+    "id": 1,
+    "number": 1001,
+    "name": "Masa 1001",
+    "capacity": 4,
+    "is_active": false,
+    "qr_code": "https://monetcafe.net/menu?table=1001",
+    "created_at": "2026-05-23T08:37:31.481Z",
+    "zone": "İçeri"
+  },
+  {
+    "id": 2,
+    "number": 10,
+    "name": "Masa 10",
+    "capacity": 4,
+    "is_active": true,
+    "qr_code": "https://monetcafe.net/menu?table=10&zone=Bah%C3%A7e",
+    "created_at": "2026-05-23T08:42:15.396Z",
+    "zone": "Bahçe"
+  },
+  {
+    "id": 3,
+    "number": 20,
+    "name": "Masa 20",
+    "capacity": 4,
+    "is_active": true,
+    "qr_code": "https://monetcafe.net/menu?table=20&zone=%C4%B0%C3%A7eri",
+    "created_at": "2026-05-23T08:42:26.828Z",
+    "zone": "İçeri"
+  },
+  {
+    "id": 4,
+    "number": 21,
+    "name": "Masa 21",
+    "capacity": 2,
+    "is_active": true,
+    "qr_code": "https://monetcafe.net/menu?table=21&zone=%C4%B0%C3%A7eri",
+    "created_at": "2026-05-23T08:42:50.983Z",
+    "zone": "İçeri"
+  },
+  {
+    "id": 5,
+    "number": 11,
+    "name": "Masa 11",
+    "capacity": 4,
+    "is_active": true,
+    "qr_code": "https://monetcafe.net/menu?table=11&zone=Bah%C3%A7e",
+    "created_at": "2026-05-23T08:43:00.810Z",
+    "zone": "Bahçe"
+  },
+  {
+    "id": 6,
+    "number": 1,
+    "name": "Masa 1",
+    "capacity": 4,
+    "is_active": true,
+    "qr_code": "https://monetcafe.net/menu?table=1&zone=%C4%B0%C3%A7eri",
+    "created_at": "2026-05-23T08:59:57.087Z",
+    "zone": "İçeri"
+  }
+]
+
+-- TABLE: categories (19 rows)
+[
+  {
+    "id": 2,
+    "name": "Türk Kahvesi Çeşitleri",
+    "sort_order": 10,
+    "is_active": true,
+    "image_url": "https://menunova.com/timthumb.php?src=https://menunova.com/files/703/Screenshot_20251121_012231.jpg&w=200&h=200&zc=4&a=c"
+  },
+  {
+    "id": 4,
+    "name": "Pankek",
+    "sort_order": 6,
+    "is_active": true,
+    "image_url": "https://menunova.com/timthumb.php?src=https://menunova.com/files/703/pankek.png&w=200&h=200&zc=4&a=c"
+  },
+  {
+    "id": 5,
+    "name": "Cookie",
+    "sort_order": 7,
+    "is_active": true,
+    "image_url": "https://menunova.com/timthumb.php?src=https://menunova.com/files/703/Screenshot_20251120_232005(1).jpg&w=200&h=200&zc=4&a=c"
+  },
+  {
+    "id": 6,
+    "name": "3.Nesil Nitelikli Kahveler",
+    "sort_order": 11,
+    "is_active": true,
+    "image_url": "https://menunova.com/timthumb.php?src=https://menunova.com/files/703/Screenshot_20251120_231615(1).jpg&w=200&h=200&zc=4&a=c"
+  },
+  {
+    "id": 7,
+    "name": "Limonata",
+    "sort_order": 13,
+    "is_active": true,
+    "image_url": "https://menunova.com/timthumb.php?src=https://menunova.com/files/703/WhatsApp%20G%C3%B6rsel%202024-03-08%20saat%2023_36_14_820fb410.jpg&w=200&h=200&zc=4&a=c"
+  },
+  {
+    "id": 8,
+    "name": "Smoothies",
+    "sort_order": 14,
+    "is_active": true,
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Strawberry_and_lemon_smoothie_%2814430283996%29.jpg/500px-Strawberry_and_lemon_smoothie_%2814430283996%29.jpg"
+  },
+  {
+    "id": 9,
+    "name": "Mocktails",
+    "sort_order": 15,
+    "is_active": true,
+    "image_url": "https://menunova.com/timthumb.php?src=https://menunova.com/files/703/IMG-20260504-WA0047.jpg&w=200&h=200&zc=4&a=c"
+  },
+  {
+    "id": 10,
+    "name": "Milkshake",
+    "sort_order": 17,
+    "is_active": true,
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Strawberry_milk_shake_%28cropped%29.jpg/500px-Strawberry_milk_shake_%28cropped%29.jpg"
+  },
+  {
+    "id": 12,
+    "name": "Espresso Bazlı Sıcak",
+    "sort_order": 19,
+    "is_active": true,
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/2/2d/Flat_White_Coffee.png"
+  },
+  {
+    "id": 11,
+    "name": "Espresso Bazlı Soğuk",
+    "sort_order": 18,
+    "is_active": true,
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Blue_Bottle%2C_Kyoto_Style_Ice_Coffee_%285909775445%29.jpg/500px-Blue_Bottle%2C_Kyoto_Style_Ice_Coffee_%285909775445%29.jpg"
+  },
+  {
+    "id": 13,
+    "name": "Sıcak İçecekler",
+    "sort_order": 20,
+    "is_active": true,
+    "image_url": null
+  },
+  {
+    "id": 14,
+    "name": "Meşrubatlar",
+    "sort_order": 21,
+    "is_active": true,
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/15-09-26-RalfR-WLC-0098_-_Coca-Cola_glass_bottle_%28Germany%29.jpg/500px-15-09-26-RalfR-WLC-0098_-_Coca-Cola_glass_bottle_%28Germany%29.jpg"
+  },
+  {
+    "id": 15,
+    "name": "Çaylar",
+    "sort_order": 23,
+    "is_active": true,
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Turkish_tea2.jpg/500px-Turkish_tea2.jpg"
+  },
+  {
+    "id": 16,
+    "name": "Extralar",
+    "sort_order": 24,
+    "is_active": true,
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Claude_Monet%2C_Impression%2C_soleil_levant%2C_1872.jpg/960px-Claude_Monet%2C_Impression%2C_soleil_levant%2C_1872.jpg"
+  },
+  {
+    "id": 17,
+    "name": "Sepicial İçecekler",
+    "sort_order": 25,
+    "is_active": true,
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Chamoyada_de_fresa.png"
+  },
+  {
+    "id": 18,
+    "name": "Organik İçecekler",
+    "sort_order": 26,
+    "is_active": true,
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Oranges_and_orange_juice.jpg/960px-Oranges_and_orange_juice.jpg"
+  },
+  {
+    "id": 19,
+    "name": "Monet Özel Seri",
+    "sort_order": 30,
+    "is_active": true,
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Chocolate.jpg/500px-Chocolate.jpg"
+  },
+  {
+    "id": 3,
+    "name": "Waffle",
+    "sort_order": 4,
+    "is_active": true,
+    "image_url": "https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExdGxvaDc1azNnc2JiZmUxbnBqOGoxYjN4M2JoNWN4ZDR5cG8yNWN3byZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/6w4SdNcShkCZfycrxI/giphy.gif"
+  },
+  {
+    "id": 1,
+    "name": "Çikolata & Muhallebi",
+    "sort_order": 5,
+    "is_active": true,
+    "image_url": "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnU0bml6NTRzeXliMnUxYWdudzk2aHc0Y2l6cm84cXlvaXpuNWxxdSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/FPa3WqwV4WlCu8N7Yf/giphy.gif"
+  }
+]
+
+-- TABLE: products (3 rows)
+[
+  {
+    "id": 1,
+    "category_id": 1,
+    "name": "Monet Clasic",
+    "description": "Framboazlı antep fıstığı",
+    "price": "190.00",
+    "image_url": "",
+    "is_campaign": false,
+    "campaign_price": null,
+    "is_active": true,
+    "sort_order": 0,
+    "created_at": "2026-05-23T08:51:50.426Z"
+  },
+  {
+    "id": 2,
+    "category_id": 2,
+    "name": "Latte",
+    "description": "İsteğe Göre, Laktozsuz Süt veya Ekstra Shot İle",
+    "price": "140.00",
+    "image_url": "",
+    "is_campaign": false,
+    "campaign_price": null,
+    "is_active": true,
+    "sort_order": 0,
+    "created_at": "2026-05-23T08:52:16.759Z"
+  },
+  {
+    "id": 3,
+    "category_id": 3,
+    "name": "Klasik Waffle",
+    "description": "Sütlü ve beyaz çikolata, çilek, muz, kivi, toz fındık, file yer fıstığı ve bitter pasta süsü.",
+    "price": "320.00",
+    "image_url": "https://menunova.com/timthumb.php?src=https://menunova.com/files/703/waffle.png&w=200&h=200&zc=4&a=c",
+    "is_campaign": false,
+    "campaign_price": null,
+    "is_active": true,
+    "sort_order": 0,
+    "created_at": "2026-05-25T15:13:42.996Z"
+  }
+]
+
+-- TABLE: orders (8 rows)
+[
+  {
+    "id": 2,
+    "table_id": 6,
+    "waiter_id": null,
+    "status": "delivered",
+    "note": "Test siparişi",
+    "created_at": "2026-05-23T09:01:51.660Z",
+    "updated_at": "2026-05-23T16:56:21.884Z",
+    "kitchen_user_id": null,
+    "kitchen_started_at": null,
+    "delivered_at": null
+  },
+  {
+    "id": 1,
+    "table_id": 6,
+    "waiter_id": null,
+    "status": "delivered",
+    "note": "Test siparişi",
+    "created_at": "2026-05-23T09:01:32.885Z",
+    "updated_at": "2026-05-23T16:56:23.392Z",
+    "kitchen_user_id": null,
+    "kitchen_started_at": null,
+    "delivered_at": null
+  },
+  {
+    "id": 3,
+    "table_id": 6,
+    "waiter_id": null,
+    "status": "delivered",
+    "note": "",
+    "created_at": "2026-05-23T18:23:25.803Z",
+    "updated_at": "2026-05-23T18:24:31.955Z",
+    "kitchen_user_id": 1,
+    "kitchen_started_at": "2026-05-23T18:24:01.866Z",
+    "delivered_at": "2026-05-23T18:24:31.955Z"
+  },
+  {
+    "id": 4,
+    "table_id": 2,
+    "waiter_id": null,
+    "status": "delivered",
+    "note": "",
+    "created_at": "2026-05-24T15:06:44.065Z",
+    "updated_at": "2026-05-24T15:07:39.603Z",
+    "kitchen_user_id": 1,
+    "kitchen_started_at": "2026-05-24T15:07:27.822Z",
+    "delivered_at": "2026-05-24T15:07:39.603Z"
+  },
+  {
+    "id": 6,
+    "table_id": 2,
+    "waiter_id": null,
+    "status": "delivered",
+    "note": "",
+    "created_at": "2026-05-24T15:17:57.509Z",
+    "updated_at": "2026-05-24T15:19:48.288Z",
+    "kitchen_user_id": 1,
+    "kitchen_started_at": "2026-05-24T15:18:48.197Z",
+    "delivered_at": "2026-05-24T15:19:48.288Z"
+  },
+  {
+    "id": 5,
+    "table_id": 2,
+    "waiter_id": null,
+    "status": "delivered",
+    "note": "",
+    "created_at": "2026-05-24T15:11:40.146Z",
+    "updated_at": "2026-05-24T15:19:49.491Z",
+    "kitchen_user_id": 1,
+    "kitchen_started_at": "2026-05-24T15:17:42.002Z",
+    "delivered_at": "2026-05-24T15:19:49.491Z"
+  },
+  {
+    "id": 7,
+    "table_id": 2,
+    "waiter_id": null,
+    "status": "delivered",
+    "note": "",
+    "created_at": "2026-05-25T16:48:48.338Z",
+    "updated_at": "2026-05-26T06:04:52.708Z",
+    "kitchen_user_id": 2,
+    "kitchen_started_at": "2026-05-26T06:04:17.151Z",
+    "delivered_at": "2026-05-26T06:04:52.708Z"
+  },
+  {
+    "id": 8,
+    "table_id": 2,
+    "waiter_id": null,
+    "status": "delivered",
+    "note": "",
+    "created_at": "2026-05-26T06:03:10.155Z",
+    "updated_at": "2026-05-26T06:11:30.257Z",
+    "kitchen_user_id": 2,
+    "kitchen_started_at": "2026-05-26T06:04:20.305Z",
+    "delivered_at": "2026-05-26T06:11:30.257Z"
+  }
+]
+
+-- TABLE: order_items (14 rows)
+[
+  {
+    "id": 1,
+    "order_id": 1,
+    "product_id": 1,
+    "quantity": 2,
+    "unit_price": "190.00",
+    "note": null
+  },
+  {
+    "id": 2,
+    "order_id": 1,
+    "product_id": 2,
+    "quantity": 1,
+    "unit_price": "140.00",
+    "note": "Sütü az"
+  },
+  {
+    "id": 3,
+    "order_id": 2,
+    "product_id": 1,
+    "quantity": 2,
+    "unit_price": "190.00",
+    "note": null
+  },
+  {
+    "id": 4,
+    "order_id": 2,
+    "product_id": 2,
+    "quantity": 1,
+    "unit_price": "140.00",
+    "note": "Sütü az"
+  },
+  {
+    "id": 5,
+    "order_id": 3,
+    "product_id": 1,
+    "quantity": 2,
+    "unit_price": "190.00",
+    "note": null
+  },
+  {
+    "id": 6,
+    "order_id": 3,
+    "product_id": 2,
+    "quantity": 2,
+    "unit_price": "140.00",
+    "note": null
+  },
+  {
+    "id": 7,
+    "order_id": 4,
+    "product_id": 1,
+    "quantity": 2,
+    "unit_price": "190.00",
+    "note": null
+  },
+  {
+    "id": 8,
+    "order_id": 5,
+    "product_id": 2,
+    "quantity": 1,
+    "unit_price": "140.00",
+    "note": null
+  },
+  {
+    "id": 9,
+    "order_id": 5,
+    "product_id": 1,
+    "quantity": 1,
+    "unit_price": "190.00",
+    "note": null
+  },
+  {
+    "id": 10,
+    "order_id": 6,
+    "product_id": 1,
+    "quantity": 1,
+    "unit_price": "190.00",
+    "note": null
+  },
+  {
+    "id": 11,
+    "order_id": 7,
+    "product_id": 3,
+    "quantity": 1,
+    "unit_price": "320.00",
+    "note": null
+  },
+  {
+    "id": 12,
+    "order_id": 7,
+    "product_id": 1,
+    "quantity": 1,
+    "unit_price": "190.00",
+    "note": null
+  },
+  {
+    "id": 13,
+    "order_id": 8,
+    "product_id": 3,
+    "quantity": 1,
+    "unit_price": "320.00",
+    "note": null
+  },
+  {
+    "id": 14,
+    "order_id": 8,
+    "product_id": 2,
+    "quantity": 2,
+    "unit_price": "140.00",
+    "note": null
+  }
+]
+
+-- TABLE: bills (8 rows)
+[
+  {
+    "id": 1,
+    "table_id": 2,
+    "cashier_id": 1,
+    "total": "330.00",
+    "payment_method": "cash",
+    "status": "paid",
+    "opened_at": "2026-05-24T15:13:15.986Z",
+    "closed_at": "2026-05-25T14:52:38.215Z",
+    "discount_amount": "0.00",
+    "note": null
+  },
+  {
+    "id": 2,
+    "table_id": 6,
+    "cashier_id": 1,
+    "total": "1700.00",
+    "payment_method": "card",
+    "status": "paid",
+    "opened_at": "2026-05-24T15:20:14.502Z",
+    "closed_at": "2026-05-26T06:05:30.959Z",
+    "discount_amount": "0.00",
+    "note": null
+  },
+  {
+    "id": 3,
+    "table_id": 2,
+    "cashier_id": 4,
+    "total": "900.00",
+    "payment_method": "cash",
+    "status": "paid",
+    "opened_at": "2026-05-25T14:52:45.779Z",
+    "closed_at": "2026-05-26T06:06:29.552Z",
+    "discount_amount": "0.00",
+    "note": null
+  },
+  {
+    "id": 4,
+    "table_id": 6,
+    "cashier_id": 4,
+    "total": "1700.00",
+    "payment_method": "cash",
+    "status": "paid",
+    "opened_at": "2026-05-26T06:06:32.850Z",
+    "closed_at": "2026-05-26T06:06:37.516Z",
+    "discount_amount": "0.00",
+    "note": null
+  },
+  {
+    "id": 5,
+    "table_id": 2,
+    "cashier_id": 4,
+    "total": "2010.00",
+    "payment_method": "card",
+    "status": "paid",
+    "opened_at": "2026-05-26T06:07:02.484Z",
+    "closed_at": "2026-05-26T06:10:46.618Z",
+    "discount_amount": "0.00",
+    "note": null
+  },
+  {
+    "id": 6,
+    "table_id": 6,
+    "cashier_id": 4,
+    "total": "1700.00",
+    "payment_method": "cash",
+    "status": "paid",
+    "opened_at": "2026-05-26T06:12:48.061Z",
+    "closed_at": "2026-05-26T06:12:52.321Z",
+    "discount_amount": "0.00",
+    "note": null
+  },
+  {
+    "id": 7,
+    "table_id": 2,
+    "cashier_id": 4,
+    "total": "2010.00",
+    "payment_method": "cash",
+    "status": "paid",
+    "opened_at": "2026-05-26T06:12:57.308Z",
+    "closed_at": "2026-05-26T06:13:02.528Z",
+    "discount_amount": "0.00",
+    "note": null
+  },
+  {
+    "id": 8,
+    "table_id": 2,
+    "cashier_id": 4,
+    "total": "2010.00",
+    "payment_method": "card",
+    "status": "paid",
+    "opened_at": "2026-05-26T06:14:10.587Z",
+    "closed_at": "2026-05-26T06:22:28.599Z",
+    "discount_amount": "0.00",
+    "note": null
+  }
+]
+
+-- TABLE: bill_orders (28 rows)
+[
+  {
+    "bill_id": 1,
+    "order_id": 5
+  },
+  {
+    "bill_id": 2,
+    "order_id": 3
+  },
+  {
+    "bill_id": 2,
+    "order_id": 2
+  },
+  {
+    "bill_id": 2,
+    "order_id": 1
+  },
+  {
+    "bill_id": 3,
+    "order_id": 6
+  },
+  {
+    "bill_id": 3,
+    "order_id": 5
+  },
+  {
+    "bill_id": 3,
+    "order_id": 4
+  },
+  {
+    "bill_id": 4,
+    "order_id": 3
+  },
+  {
+    "bill_id": 4,
+    "order_id": 2
+  },
+  {
+    "bill_id": 4,
+    "order_id": 1
+  },
+  {
+    "bill_id": 5,
+    "order_id": 8
+  },
+  {
+    "bill_id": 5,
+    "order_id": 7
+  },
+  {
+    "bill_id": 5,
+    "order_id": 6
+  },
+  {
+    "bill_id": 5,
+    "order_id": 5
+  },
+  {
+    "bill_id": 5,
+    "order_id": 4
+  },
+  {
+    "bill_id": 6,
+    "order_id": 3
+  },
+  {
+    "bill_id": 6,
+    "order_id": 2
+  },
+  {
+    "bill_id": 6,
+    "order_id": 1
+  },
+  {
+    "bill_id": 7,
+    "order_id": 8
+  },
+  {
+    "bill_id": 7,
+    "order_id": 7
+  },
+  {
+    "bill_id": 7,
+    "order_id": 6
+  },
+  {
+    "bill_id": 7,
+    "order_id": 5
+  },
+  {
+    "bill_id": 7,
+    "order_id": 4
+  },
+  {
+    "bill_id": 8,
+    "order_id": 8
+  },
+  {
+    "bill_id": 8,
+    "order_id": 7
+  },
+  {
+    "bill_id": 8,
+    "order_id": 6
+  },
+  {
+    "bill_id": 8,
+    "order_id": 5
+  },
+  {
+    "bill_id": 8,
+    "order_id": 4
+  }
+]
+
+-- TABLE: bill_items (14 rows)
+[
+  {
+    "id": 1,
+    "bill_id": 1,
+    "order_item_id": 10,
+    "is_paid": true,
+    "paid_at": "2026-05-25T14:52:38.170Z",
+    "payment_method": "cash"
+  },
+  {
+    "id": 2,
+    "bill_id": 1,
+    "order_item_id": 8,
+    "is_paid": true,
+    "paid_at": "2026-05-25T14:52:38.188Z",
+    "payment_method": "cash"
+  },
+  {
+    "id": 3,
+    "bill_id": 1,
+    "order_item_id": 9,
+    "is_paid": true,
+    "paid_at": "2026-05-25T14:52:38.197Z",
+    "payment_method": "cash"
+  },
+  {
+    "id": 4,
+    "bill_id": 3,
+    "order_item_id": 7,
+    "is_paid": true,
+    "paid_at": "2026-05-25T14:52:53.116Z",
+    "payment_method": "cash"
+  },
+  {
+    "id": 5,
+    "bill_id": 3,
+    "order_item_id": 9,
+    "is_paid": true,
+    "paid_at": "2026-05-25T14:52:53.125Z",
+    "payment_method": "cash"
+  },
+  {
+    "id": 6,
+    "bill_id": 8,
+    "order_item_id": 7,
+    "is_paid": true,
+    "paid_at": "2026-05-26T06:22:28.390Z",
+    "payment_method": "card"
+  },
+  {
+    "id": 7,
+    "bill_id": 8,
+    "order_item_id": 7,
+    "is_paid": true,
+    "paid_at": "2026-05-26T06:22:28.493Z",
+    "payment_method": "card"
+  },
+  {
+    "id": 8,
+    "bill_id": 8,
+    "order_item_id": 8,
+    "is_paid": true,
+    "paid_at": "2026-05-26T06:22:28.505Z",
+    "payment_method": "card"
+  },
+  {
+    "id": 9,
+    "bill_id": 8,
+    "order_item_id": 9,
+    "is_paid": true,
+    "paid_at": "2026-05-26T06:22:28.517Z",
+    "payment_method": "card"
+  },
+  {
+    "id": 10,
+    "bill_id": 8,
+    "order_item_id": 10,
+    "is_paid": true,
+    "paid_at": "2026-05-26T06:22:28.528Z",
+    "payment_method": "card"
+  },
+  {
+    "id": 11,
+    "bill_id": 8,
+    "order_item_id": 11,
+    "is_paid": true,
+    "paid_at": "2026-05-26T06:22:28.541Z",
+    "payment_method": "card"
+  },
+  {
+    "id": 12,
+    "bill_id": 8,
+    "order_item_id": 12,
+    "is_paid": true,
+    "paid_at": "2026-05-26T06:22:28.553Z",
+    "payment_method": "card"
+  },
+  {
+    "id": 13,
+    "bill_id": 8,
+    "order_item_id": 13,
+    "is_paid": true,
+    "paid_at": "2026-05-26T06:22:28.565Z",
+    "payment_method": "card"
+  },
+  {
+    "id": 14,
+    "bill_id": 8,
+    "order_item_id": 14,
+    "is_paid": true,
+    "paid_at": "2026-05-26T06:22:28.576Z",
+    "payment_method": "card"
+  }
+]
+
+-- TABLE: campaigns (0 rows)
+[]
+
+-- TABLE: campaign_products (0 rows)
+[]
+
+-- TABLE: reviews (3 rows)
+[
+  {
+    "id": 1,
+    "table_id": 2,
+    "order_id": 4,
+    "rating_product": 5,
+    "rating_ambiance": 3,
+    "rating_service": 3,
+    "note": null,
+    "created_at": "2026-05-24T15:07:03.327Z"
+  },
+  {
+    "id": 2,
+    "table_id": 2,
+    "order_id": 7,
+    "rating_product": 5,
+    "rating_ambiance": 5,
+    "rating_service": 3,
+    "note": null,
+    "created_at": "2026-05-25T16:49:02.140Z"
+  },
+  {
+    "id": 3,
+    "table_id": 2,
+    "order_id": 8,
+    "rating_product": 4,
+    "rating_ambiance": 5,
+    "rating_service": 5,
+    "note": null,
+    "created_at": "2026-05-26T06:03:22.092Z"
+  }
+]
+
+-- TABLE: notifications (2 rows)
+[
+  {
+    "id": 1,
+    "sender_id": 1,
+    "message": "kültablalarını topyalın",
+    "is_read": false,
+    "created_at": "2026-05-25T16:10:45.247Z",
+    "target_role": "waiter",
+    "type": "warning",
+    "is_resolved": false
+  },
+  {
+    "id": 2,
+    "sender_id": 4,
+    "message": "patron hüseyin diye biri kahve istiyor verelim mi",
+    "is_read": false,
+    "created_at": "2026-05-26T06:15:53.082Z",
+    "target_role": "manager",
+    "type": "info",
+    "is_resolved": false
+  }
+]
+
+-- TABLE: shifts (0 rows)
+[]
+
+-- TABLE: settings (14 rows)
+[
+  {
+    "key": "cafe_name",
+    "value": "Monet Cafe",
+    "updated_at": "2026-05-25T15:47:54.031Z"
+  },
+  {
+    "key": "cafe_slogan",
+    "value": "Çikolata Daima İyi Bir Fikirdir.",
+    "updated_at": "2026-05-25T15:47:54.042Z"
+  },
+  {
+    "key": "cafe_type",
+    "value": "waiter",
+    "updated_at": "2026-05-25T15:47:54.053Z"
+  },
+  {
+    "key": "cafe_address",
+    "value": "Kayseri",
+    "updated_at": "2026-05-25T15:47:54.065Z"
+  },
+  {
+    "key": "cafe_phone",
+    "value": "",
+    "updated_at": "2026-05-25T15:47:54.076Z"
+  },
+  {
+    "key": "cafe_email",
+    "value": "info@monetcafe.net",
+    "updated_at": "2026-05-25T15:47:54.087Z"
+  },
+  {
+    "key": "cafe_instagram",
+    "value": "https://www.instagram.com/monetkayseri/",
+    "updated_at": "2026-05-25T15:47:54.098Z"
+  },
+  {
+    "key": "cafe_facebook",
+    "value": "https://www.facebook.com/akademi724",
+    "updated_at": "2026-05-25T15:47:54.109Z"
+  },
+  {
+    "key": "cafe_whatsapp",
+    "value": "",
+    "updated_at": "2026-05-25T15:47:54.120Z"
+  },
+  {
+    "key": "cafe_about",
+    "value": "Kayseri'nin kalbinde, çikolatanın büyülü dünyasını keşfedin. El yapımı çikolatalar, özel kahveler ve eşsiz tatlılarımızla unutulmaz anlar yaşatıyoruz.",
+    "updated_at": "2026-05-25T15:47:54.130Z"
+  },
+  {
+    "key": "cafe_career_email",
+    "value": "kariyer@monetcafe.net",
+    "updated_at": "2026-05-25T15:47:54.141Z"
+  },
+  {
+    "key": "currency",
+    "value": "TRY",
+    "updated_at": "2026-05-25T15:47:54.152Z"
+  },
+  {
+    "key": "cafe_hero_image",
+    "value": "https://i.imgur.com/mIvkvyU.png",
+    "updated_at": "2026-05-25T15:47:54.163Z"
+  },
+  {
+    "key": "cafe_hero_image_mobile",
+    "value": "https://i.imgur.com/7KxpIaR.png",
+    "updated_at": "2026-05-25T15:47:54.174Z"
+  }
+]
+
