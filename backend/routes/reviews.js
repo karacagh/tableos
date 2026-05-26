@@ -41,11 +41,33 @@ router.get('/', auth, roles('admin','manager'), async (req, res) => {
     if (date) { params.push(date); filter = `WHERE DATE(r.created_at) = $1`; }
 
     const result = await pool.query(`
-      SELECT r.*, t.number as table_number, t.zone as table_zone,
-        ROUND((r.rating_product + r.rating_ambiance + r.rating_service)::numeric / 3, 1) as avg_rating
+      SELECT
+        r.*,
+        t.number as table_number,
+        t.zone as table_zone,
+        ROUND((r.rating_product + r.rating_ambiance + r.rating_service)::numeric / 3, 1) as avg_rating,
+        -- O andaki aktif adisyonu bul
+        b.bill_number,
+        b.id as bill_id,
+        -- Kasiyeri bul (adisyonu açan)
+        cashier.name as cashier_name,
+        -- Garsonu bul (o masadaki siparişi alan)
+        waiter.name as waiter_name,
+        -- Mutfak personelini bul (siparişi hazırlayan)
+        kitchen.name as kitchen_name
       FROM reviews r
       LEFT JOIN tables t ON r.table_id = t.id
+      LEFT JOIN bills b ON b.table_id = r.table_id
+        AND b.status = 'paid'
+        AND b.closed_at >= r.created_at - INTERVAL '4 hours'
+        AND b.closed_at <= r.created_at + INTERVAL '1 hour'
+      LEFT JOIN users cashier ON cashier.id = b.cashier_id
+      LEFT JOIN orders o ON o.bill_id = b.id
+      LEFT JOIN users waiter ON waiter.id = o.waiter_id
+      LEFT JOIN users kitchen ON kitchen.id = o.kitchen_user_id
       ${filter}
+      GROUP BY r.id, t.number, t.zone, b.bill_number, b.id,
+               cashier.name, waiter.name, kitchen.name
       ORDER BY r.created_at DESC
     `, params);
     res.json(result.rows);

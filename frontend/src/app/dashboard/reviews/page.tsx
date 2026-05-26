@@ -9,6 +9,10 @@ interface Review {
   id: number; table_number: number; table_zone: string;
   rating_product: number; rating_ambiance: number; rating_service: number;
   avg_rating: number; note: string; created_at: string;
+  bill_number: string;
+  cashier_name: string;
+  waiter_name: string;
+  kitchen_name: string;
 }
 interface Stats {
   total_reviews: number; avg_product: number;
@@ -141,6 +145,34 @@ export default function ReviewsPage() {
                 {r.note && (
                   <div className="bg-stone-700 rounded-lg px-3 py-2 text-sm text-stone-300 italic">
                     "{r.note}"
+                  </div>
+                )}
+                {(r.bill_number || r.cashier_name || r.waiter_name || r.kitchen_name) && (
+                  <div className="mt-3 pt-3 border-t border-stone-700 grid grid-cols-2 gap-2">
+                    {r.bill_number && (
+                      <div className="flex items-center gap-2 text-xs text-stone-500">
+                        <span>🧾</span>
+                        <span>Fiş: <span className="text-stone-400 font-medium">{r.bill_number}</span></span>
+                      </div>
+                    )}
+                    {r.cashier_name && (
+                      <div className="flex items-center gap-2 text-xs text-stone-500">
+                        <span>💰</span>
+                        <span>Kasiyer: <span className="text-stone-400 font-medium">{r.cashier_name}</span></span>
+                      </div>
+                    )}
+                    {r.waiter_name && (
+                      <div className="flex items-center gap-2 text-xs text-stone-500">
+                        <span>🧑‍🍽️</span>
+                        <span>Garson: <span className="text-stone-400 font-medium">{r.waiter_name}</span></span>
+                      </div>
+                    )}
+                    {r.kitchen_name && (
+                      <div className="flex items-center gap-2 text-xs text-stone-500">
+                        <span>👨‍🍳</span>
+                        <span>Mutfak: <span className="text-stone-400 font-medium">{r.kitchen_name}</span></span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
