@@ -195,12 +195,8 @@ function MenuContent() {
             <p className="text-stone-400 mb-1">{tableZone} · Masa {tableNumber}</p>
             <p className="text-stone-500 text-sm mb-6">Siparişiniz hazırlanıyor, kısa sürede geliyor.</p>
             <div className="flex flex-col gap-3">
-              <button onClick={() => setShowReview(true)}
-                className="bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold px-6 py-3 rounded-xl transition">
-                ⭐ Değerlendirme Yap
-              </button>
               <button onClick={() => { setOrdered(false); loadAll(); }}
-                className="bg-stone-800 hover:bg-stone-700 text-white px-6 py-3 rounded-xl transition border border-stone-700">
+                className="bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold px-6 py-3 rounded-xl transition">
                 Yeni Sipariş Ver
               </button>
               <button onClick={() => { setShowOrders(true); setOrdered(false); }}
@@ -325,9 +321,8 @@ function MenuContent() {
                 )}
               </button>
             )}
-            {myOrders.some(o => o.status === 'delivered') && !reviewSent && !showReview && (
-              <button
-                onClick={() => setShowReview(true)}
+            {myOrders.length > 0 && !reviewSent && (
+              <button onClick={() => setShowReview(true)}
                 className="flex items-center gap-1.5 bg-stone-700 hover:bg-stone-600 px-3 py-1.5 rounded-lg text-xs font-medium transition text-amber-400">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
@@ -336,7 +331,7 @@ function MenuContent() {
               </button>
             )}
             {reviewSent && (
-              <span className="text-green-400 text-xs font-medium">✓ Teşekkürler</span>
+              <span className="text-green-400 text-xs">✓ Teşekkürler</span>
             )}
           </div>
         </div>
