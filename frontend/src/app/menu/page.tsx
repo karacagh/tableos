@@ -185,7 +185,7 @@ function MenuContent() {
     </div>
   );
 
-  if (ordered && !showOrders) return (
+  if ((ordered && !showOrders) || showReview || reviewSent) return (
     <div className="min-h-screen bg-stone-900 flex items-center justify-center p-6">
       <div className="text-center max-w-sm w-full">
         {!showReview && !reviewSent && (
@@ -244,7 +244,7 @@ function MenuContent() {
                 className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-stone-900 font-bold rounded-xl transition">
                 Gönder
               </button>
-              <button onClick={() => { setShowReview(false); setOrdered(false); loadAll(); }}
+              <button onClick={() => { setShowReview(false); }}
                 className="px-4 py-3 bg-stone-700 hover:bg-stone-600 rounded-xl text-sm transition">
                 Geç
               </button>
@@ -321,8 +321,9 @@ function MenuContent() {
                 )}
               </button>
             )}
-            {myOrders.length > 0 && !reviewSent && (
-              <button onClick={() => setShowReview(true)}
+            {myOrders.length > 0 && !reviewSent && !showReview && (
+              <button
+                onClick={() => { setShowReview(true); setShowOrders(false); }}
                 className="flex items-center gap-1.5 bg-stone-700 hover:bg-stone-600 px-3 py-1.5 rounded-lg text-xs font-medium transition text-amber-400">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
