@@ -52,6 +52,7 @@ function MenuContent() {
   const [reviewSent, setReviewSent] = useState(false);
   const [showCategoryGrid, setShowCategoryGrid] = useState(true);
   const [settings, setSettings] = useState<{ cafe_instagram?: string }>({});
+  const [enlargedImage, setEnlargedImage] = useState<{url: string; name: string} | null>(null);
 
   const loadAll = useCallback(async () => {
     try {
@@ -537,7 +538,12 @@ function MenuContent() {
           return (
             <div key={p.id} className="bg-stone-800 border border-stone-700 rounded-xl p-4 flex gap-3">
               {p.image_url && (
-                <img src={p.image_url} alt={p.name} className="w-20 h-20 rounded-lg object-cover flex-shrink-0" />
+                <img
+                  src={p.image_url}
+                  alt={p.name}
+                  className="w-20 h-20 rounded-lg object-cover flex-shrink-0 cursor-zoom-in"
+                  onClick={() => setEnlargedImage({ url: p.image_url, name: p.name })}
+                />
               )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
@@ -645,6 +651,31 @@ function MenuContent() {
               className="w-full py-4 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-stone-900 font-bold rounded-xl transition text-lg">
               {ordering ? 'Gönderiliyor...' : `Sipariş Ver · ₺${getCartTotal().toFixed(2)}`}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Büyütülmüş Görsel Modal */}
+      {enlargedImage && (
+        <div
+          className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4"
+          onClick={() => setEnlargedImage(null)}>
+          <div className="relative max-w-sm w-full" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setEnlargedImage(null)}
+              className="absolute -top-3 -right-3 w-8 h-8 bg-stone-700 hover:bg-stone-600 rounded-full flex items-center justify-center text-white z-10 shadow-lg">
+              ×
+            </button>
+            <div className="bg-stone-800 rounded-2xl overflow-hidden shadow-2xl">
+              <img
+                src={enlargedImage.url}
+                alt={enlargedImage.name}
+                className="w-full object-cover max-h-80" />
+              <div className="px-4 py-3 border-t border-stone-700">
+                <div className="font-semibold text-white text-sm">{enlargedImage.name}</div>
+              </div>
+            </div>
+            <p className="text-stone-500 text-xs text-center mt-3">Kapatmak için dışarı tıkla</p>
           </div>
         </div>
       )}
