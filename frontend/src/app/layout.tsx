@@ -6,7 +6,7 @@ import { Toaster } from 'react-hot-toast';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Monet Cafe Yönetim',
+  title: 'Claude Monet Cafe',
   description: 'Cafe yönetim sistemi',
 };
 

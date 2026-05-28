@@ -17,6 +17,8 @@ export default function MenuPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [activeTab, setActiveTab] = useState<'products'|'categories'|'campaigns'>('products');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterCategory, setFilterCategory] = useState<number | 'all'>('all');
   const [loading, setLoading] = useState(true);
   const [showProductForm, setShowProductForm] = useState(false);
   const [showCatForm, setShowCatForm] = useState(false);
@@ -45,6 +47,23 @@ export default function MenuPage() {
       setProducts(prods.data);
     } catch { toast.error('Veriler yüklenemedi'); }
     finally { setLoading(false); }
+  }
+
+  async function toggleProductActive(p: Product) {
+    try {
+      await api.put(`/api/products/${p.id}`, {
+        category_id: p.category_id,
+        name: p.name,
+        description: p.description,
+        price: p.price,
+        image_url: p.image_url,
+        is_campaign: p.is_campaign,
+        campaign_price: p.campaign_price,
+        is_active: !p.is_active,
+      });
+      toast.success(p.is_active ? 'Ürün pasife alındı' : 'Ürün aktif edildi');
+      loadAll();
+    } catch { toast.error('Hata oluştu'); }
   }
 
   async function saveProduct(e: React.FormEvent) {
@@ -311,6 +330,33 @@ export default function MenuPage() {
           </button>
         </div>
 
+        {activeTab === 'products' && (
+          <div className="flex gap-3 mb-4 flex-wrap">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Ürün adı ara..."
+              className="flex-1 min-w-48 bg-stone-700 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-500 text-white placeholder-stone-500" />
+            <select
+              value={filterCategory}
+              onChange={e => setFilterCategory(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+              className="bg-stone-700 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-500 text-white">
+              <option value="all">Tüm Kategoriler</option>
+              {categories.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            {(searchQuery || filterCategory !== 'all') && (
+              <button
+                onClick={() => { setSearchQuery(''); setFilterCategory('all'); }}
+                className="text-stone-400 hover:text-white text-sm px-3 py-2 bg-stone-700 rounded-lg transition">
+                Temizle ✕
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Ürün Listesi */}
         {activeTab === 'products' && (
           <div className="space-y-2">
@@ -321,7 +367,12 @@ export default function MenuPage() {
               </div>
             ) : (
               categories.map(cat => {
-                const catProducts = products.filter(p => p.category_id === cat.id);
+                const catProducts = products.filter(p => {
+                  if (p.category_id !== cat.id) return false;
+                  if (filterCategory !== 'all' && p.category_id !== filterCategory) return false;
+                  if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+                  return true;
+                });
                 if (catProducts.length === 0) return null;
                 return (
                   <div key={cat.id} className="mb-6">
@@ -330,7 +381,7 @@ export default function MenuPage() {
                     </h2>
                     <div className="space-y-2">
                       {catProducts.map(p => (
-                        <div key={p.id} className="bg-stone-800 border border-stone-700 rounded-xl px-5 py-4 flex items-center gap-4 hover:border-stone-500 transition">
+                        <div key={p.id} className={`bg-stone-800 border border-stone-700 rounded-xl px-5 py-4 flex items-center gap-4 hover:border-stone-500 transition ${!p.is_active ? 'opacity-50' : ''}`}>
                           {p.image_url && <img src={p.image_url} alt={p.name} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
@@ -339,6 +390,15 @@ export default function MenuPage() {
                             </div>
                             {p.description && <div className="text-stone-500 text-xs mt-0.5 truncate">{p.description}</div>}
                           </div>
+                          <button
+                            onClick={() => toggleProductActive(p)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                              p.is_active ? 'bg-green-500' : 'bg-stone-600'
+                            }`}>
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              p.is_active ? 'translate-x-6' : 'translate-x-1'
+                            }`} />
+                          </button>
                           <div className="text-right flex-shrink-0">
                             {p.is_campaign && p.campaign_price ? (
                               <div>
