@@ -37,17 +37,28 @@ export default function WaiterPage() {
   const [notifMessage, setNotifMessage] = useState('');
   const [notifTarget, setNotifTarget] = useState('manager');
   const [historyDate, setHistoryDate] = useState(new Date().toISOString().split('T')[0]);
+  const [showOrderForm, setShowOrderForm] = useState(false);
+  const [orderTable, setOrderTable] = useState<number | null>(null);
+  const [tables, setTables] = useState<any[]>([]);
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [productSearch, setProductSearch] = useState('');
+  const [orderCart, setOrderCart] = useState<{product: any; quantity: number; note: string}[]>([]);
+  const [submittingOrder, setSubmittingOrder] = useState(false);
 
   const loadOrders = useCallback(async (date?: string) => {
     try {
       const params = new URLSearchParams();
       if (date) params.append('date', date);
-      const [ordersRes, notifsRes] = await Promise.all([
+      const [ordersRes, notifsRes, tablesRes, productsRes] = await Promise.all([
         api.get(`/api/orders?${params}`),
         api.get('/api/notifications'),
+        api.get('/api/tables'),
+        api.get('/api/products'),
       ]);
       setOrders(ordersRes.data);
       setNotifications(notifsRes.data);
+      setTables(tablesRes.data);
+      setAllProducts(productsRes.data);
     } catch { toast.error('Veriler yüklenemedi'); }
     finally { setLoading(false); }
   }, []);
@@ -105,6 +116,46 @@ export default function WaiterPage() {
     loadOrders();
   }
 
+  function addToOrderCart(product: any) {
+    setOrderCart(prev => {
+      const existing = prev.find(i => i.product.id === product.id);
+      if (existing) return prev.map(i => i.product.id === product.id ? {...i, quantity: i.quantity + 1} : i);
+      return [...prev, { product, quantity: 1, note: '' }];
+    });
+  }
+
+  function removeFromOrderCart(productId: number) {
+    setOrderCart(prev => {
+      const existing = prev.find(i => i.product.id === productId);
+      if (existing && existing.quantity > 1) return prev.map(i => i.product.id === productId ? {...i, quantity: i.quantity - 1} : i);
+      return prev.filter(i => i.product.id !== productId);
+    });
+  }
+
+  async function submitOrder() {
+    if (!orderTable) { toast.error('Masa seçin'); return; }
+    if (orderCart.length === 0) { toast.error('Ürün ekleyin'); return; }
+    setSubmittingOrder(true);
+    try {
+      await api.post('/api/orders', {
+        table_id: orderTable,
+        waiter_id: user?.id,
+        items: orderCart.map(i => ({
+          product_id: i.product.id,
+          quantity: i.quantity,
+          note: i.note || null,
+        })),
+      });
+      toast.success('Sipariş alındı');
+      setShowOrderForm(false);
+      setOrderCart([]);
+      setOrderTable(null);
+      setProductSearch('');
+      loadOrders();
+    } catch { toast.error('Hata oluştu'); }
+    finally { setSubmittingOrder(false); }
+  }
+
   function logout() { clearAuth(); router.replace('/login'); }
 
   const activeOrders = orders.filter(o => !['delivered','cancelled'].includes(o.status));
@@ -134,6 +185,10 @@ export default function WaiterPage() {
             <span className="text-amber-400 font-semibold">{preparing.length} hazırlanıyor</span>
             <span className="text-green-400 font-bold animate-pulse">{ready.length} hazır!</span>
           </div>
+          <button onClick={() => setShowOrderForm(true)}
+            className="bg-amber-500 hover:bg-amber-600 text-stone-900 font-semibold px-4 py-2 rounded-lg text-sm transition">
+            + Sipariş Al
+          </button>
           <button onClick={() => setShowNotif(!showNotif)} className="relative text-stone-400 hover:text-white transition">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
@@ -205,6 +260,103 @@ export default function WaiterPage() {
             className="bg-stone-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-amber-500" />
         )}
       </div>
+
+      {/* Sipariş Al Modal */}
+      {showOrderForm && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-end md:items-center justify-center">
+          <div className="bg-stone-800 w-full md:max-w-2xl md:rounded-2xl rounded-t-2xl max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-stone-700 flex-shrink-0">
+              <h3 className="text-lg font-bold text-amber-500">Sipariş Al</h3>
+              <button onClick={() => { setShowOrderForm(false); setOrderCart([]); setOrderTable(null); setProductSearch(''); }}
+                className="text-stone-400 hover:text-white text-2xl">×</button>
+            </div>
+
+            {/* Masa Seçimi */}
+            <div className="px-5 py-3 border-b border-stone-700 flex-shrink-0">
+              <label className="text-stone-400 text-xs mb-2 block">Masa Seç</label>
+              <div className="flex flex-wrap gap-2">
+                {tables.map(t => (
+                  <button key={t.id} onClick={() => setOrderTable(t.id)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition border ${
+                      orderTable === t.id
+                        ? 'bg-amber-500 text-stone-900 border-amber-500'
+                        : 'bg-stone-700 text-stone-300 border-stone-600 hover:border-stone-400'
+                    }`}>
+                    {t.zone} · {t.number}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Ürün Arama */}
+            <div className="px-5 py-3 border-b border-stone-700 flex-shrink-0">
+              <input
+                type="text"
+                value={productSearch}
+                onChange={e => setProductSearch(e.target.value)}
+                placeholder="Ürün adı ara..."
+                className="w-full bg-stone-700 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-500 text-white placeholder-stone-500" />
+            </div>
+
+            {/* Ürün Listesi */}
+            <div className="flex-1 overflow-auto px-5 py-3">
+              <div className="space-y-2">
+                {allProducts
+                  .filter(p => p.is_active && p.name.toLowerCase().includes(productSearch.toLowerCase()))
+                  .map(p => {
+                    const cartItem = orderCart.find(i => i.product.id === p.id);
+                    const price = p.is_campaign && p.campaign_price ? p.campaign_price : p.price;
+                    return (
+                      <div key={p.id} className="flex items-center gap-3 bg-stone-700 rounded-xl px-4 py-3">
+                        {p.image_url && (
+                          <img src={p.image_url} alt={p.name} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-white text-sm font-medium truncate">{p.name}</div>
+                          <div className="text-amber-400 text-xs font-semibold">₺{price}</div>
+                        </div>
+                        {cartItem ? (
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <button onClick={() => removeFromOrderCart(p.id)}
+                              className="w-7 h-7 rounded-full bg-stone-600 flex items-center justify-center text-white font-bold hover:bg-stone-500">−</button>
+                            <span className="text-amber-400 font-bold w-5 text-center">{cartItem.quantity}</span>
+                            <button onClick={() => addToOrderCart(p)}
+                              className="w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center text-stone-900 font-bold hover:bg-amber-600">+</button>
+                          </div>
+                        ) : (
+                          <button onClick={() => addToOrderCart(p)}
+                            className="w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center text-stone-900 font-bold hover:bg-amber-600 flex-shrink-0">+</button>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+
+            {/* Sepet Özeti + Gönder */}
+            {orderCart.length > 0 && (
+              <div className="px-5 py-4 border-t border-stone-700 flex-shrink-0 bg-stone-900/50">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-stone-300 text-sm">
+                    {orderCart.reduce((s, i) => s + i.quantity, 0)} ürün
+                  </div>
+                  <div className="text-amber-400 font-bold">
+                    ₺{orderCart.reduce((s, i) => s + (i.quantity * (i.product.is_campaign && i.product.campaign_price ? i.product.campaign_price : i.product.price)), 0).toFixed(2)}
+                  </div>
+                </div>
+                {!orderTable && (
+                  <p className="text-rose-400 text-xs mb-2">⚠️ Masa seçmeyi unutmayın</p>
+                )}
+                <button onClick={submitOrder} disabled={submittingOrder || !orderTable}
+                  className="w-full py-3 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-stone-900 font-bold rounded-xl transition">
+                  {submittingOrder ? 'Gönderiliyor...' : `Siparişi Ver · ₺${orderCart.reduce((s, i) => s + (i.quantity * (i.product.is_campaign && i.product.campaign_price ? i.product.campaign_price : i.product.price)), 0).toFixed(2)}`}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* İçerik */}
       <main className="flex-1 overflow-auto p-6">
